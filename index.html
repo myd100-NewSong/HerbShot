@@ -53,13 +53,14 @@
       letter-spacing: 0.5px;
     }
 
-    /* 공통 토글 버튼 그룹 (필터 & 정렬) */
+    /* 공통 토글 버튼 그룹 */
     .option-label { font-size: 13px; font-weight: bold; color: #3a3a3c; }
-    .option-group { display: flex; gap: 4px; width: 100%; }
+    .option-group { display: flex; gap: 4px; width: 100%; flex-wrap: wrap; }
     .option-btn { 
       flex: 1; 
+      min-width: 70px;
       padding: 10px 0; 
-      font-size: 12px; 
+      font-size: 13px; 
       font-weight: bold; 
       border: 1.5px solid #c7c7cc; 
       border-radius: 8px; 
@@ -74,6 +75,22 @@
       color: #ffffff; 
       border-color: #007aff; 
     }
+
+    /* 이모티콘 선택 바 */
+    .emoji-bar { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; -webkit-overflow-scrolling: touch; }
+    .emoji-btn {
+      background: #ffffff;
+      border: 1px solid #d1d1d6;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .emoji-btn:active { background-color: #e5e5ea; }
 
     .btn { 
       width: 100%; 
@@ -94,9 +111,16 @@
     .btn-save { background-color: #34c759; display: none; margin-top: 5px; }
 
     /* 1:1 정사각형 미리보기 박스 */
-    .preview-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; display: none; background: #1c1c1e; text-align: center; margin-top: 5px; }
+    .preview-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; display: none; background: #e5e5ea; text-align: center; margin-top: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     #polaroidCanvas { width: 100%; height: 100%; display: block; touch-action: none; -webkit-user-select: none; user-select: none; cursor: grab; }
     .preview-box { touch-action: none; }
+
+    /* 글자 크기 조절 패널 (저장될 사진 바로 아래 위치) */
+    .fontsize-panel { display: none; flex-direction: column; gap: 8px; background: #ffffff; border-radius: 12px; padding: 12px; }
+    .fontsize-header { display: flex; justify-content: space-between; align-items: center; }
+    .fontsize-btns { display: flex; gap: 4px; }
+    .size-btn { padding: 4px 10px; font-size: 12px; font-weight: bold; border: 1.5px solid #c7c7cc; border-radius: 6px; background: #ffffff; color: #3a3a3c; cursor: pointer; }
+    .size-btn.active { background: #007aff; color: #ffffff; border-color: #007aff; }
 
     /* 사진 크기·위치 조절 패널 */
     .adjust-panel { display: none; flex-direction: column; gap: 8px; background: #ffffff; border-radius: 12px; padding: 12px; }
@@ -140,12 +164,26 @@
         <button type="button" class="seg-btn text-btn" onclick="setShowText(false)">문구안함</button>
       </div>
     </div>
-  <div class="input-group" id="messageGroup">
-    <input type="text" id="messageInput" value="늘 행복하시고 건강하세요!" placeholder="늘 행복하시고 건강하세요!">
-    <div class="char-count" id="charCount"></div>
-    <button type="button" class="phrase-save-btn" id="savePhraseBtn">＋ 현재 문구 저장</button>
-    <div class="phrase-list" id="phraseList"></div>
-  </div>
+    <div class="input-group" id="messageGroup">
+      <input type="text" id="messageInput" value="늘 행복하시고 건강하세요!" placeholder="늘 행복하시고 건강하세요!">
+      
+      <!-- 이모티콘 빠른 입력 바 -->
+      <div class="emoji-bar">
+        <button type="button" class="emoji-btn" onclick="insertEmoji('🙏')">🙏</button>
+        <button type="button" class="emoji-btn" onclick="insertEmoji('❤️')">❤️</button>
+        <button type="button" class="emoji-btn" onclick="insertEmoji('💖')">💖</button>
+        <button type="button" class="emoji-btn" onclick="insertEmoji('💕')">💕</button>
+        <button type="button" class="emoji-btn" onclick="insertEmoji('🌿')">🌿</button>
+        <button type="button" class="emoji-btn" onclick="insertEmoji('🌸')">🌸</button>
+        <button type="button" class="emoji-btn" onclick="insertEmoji('✨')">✨</button>
+        <button type="button" class="emoji-btn" onclick="insertEmoji('🕊️')">🕊️</button>
+        <button type="button" class="emoji-btn" onclick="insertEmoji('😊')">😊</button>
+      </div>
+
+      <div class="char-count" id="charCount"></div>
+      <button type="button" class="phrase-save-btn" id="savePhraseBtn">＋ 현재 문구 저장</button>
+      <div class="phrase-list" id="phraseList"></div>
+    </div>
   </div>
 
   <!-- 사진 촬영 및 앨범 선택 버튼 -->
@@ -155,14 +193,23 @@
   <label for="gallery-input" class="btn btn-gallery">🖼️ 앨범에서 사진 선택</label>
   <input type="file" id="gallery-input" class="file-input" accept="image/*">
 
-  <div id="alignSection" style="display:flex; flex-direction:column; gap:12px;">
-  <!-- 텍스트 정렬 선택 옵션 (기본: 가운데 정렬) -->
-  <div class="option-label">📐 카드 텍스트 정렬 선택</div>
-  <div class="option-group">
-    <button type="button" class="option-btn align-btn" onclick="setTextAlign('left')">왼쪽 정렬</button>
-    <button type="button" class="option-btn align-btn active" onclick="setTextAlign('center')">가운데 정렬</button>
-    <button type="button" class="option-btn align-btn" onclick="setTextAlign('right')">오른쪽 정렬</button>
+  <!-- 텍스트 정렬 -->
+  <div id="alignSection" style="display:flex; flex-direction:column; gap:6px;">
+    <div class="option-label">📐 텍스트 정렬</div>
+    <div class="option-group">
+      <button type="button" class="option-btn align-btn" onclick="setTextAlign('left')">왼쪽 정렬</button>
+      <button type="button" class="option-btn align-btn active" onclick="setTextAlign('center')">가운데 정렬</button>
+      <button type="button" class="option-btn align-btn" onclick="setTextAlign('right')">오른쪽 정렬</button>
+    </div>
   </div>
+
+  <!-- 프레임 스타일 선택 (폴라로이드, 필름, 골든, 한지배경) -->
+  <div class="option-label">🖼️ 프레임 스타일 선택</div>
+  <div class="option-group">
+    <button type="button" class="option-btn style-btn active" onclick="setFrameStyle('polaroid')">🤍 폴라로이드</button>
+    <button type="button" class="option-btn style-btn" onclick="setFrameStyle('film')">🎞️ 필름</button>
+    <button type="button" class="option-btn style-btn" onclick="setFrameStyle('golden')">✨ 골든</button>
+    <button type="button" class="option-btn style-btn" onclick="setFrameStyle('hanji')">🌸 한지배경</button>
   </div>
 
   <!-- 필터 선택 영역 -->
@@ -175,9 +222,26 @@
     <button type="button" class="option-btn filter-btn" onclick="setFilter(5)">5.레트로</button>
   </div>
 
-  <!-- 1:1 비율 미리보기 -->
+  <!-- 1:1 비율 미리보기 (저장될 사진) -->
   <div class="preview-box" id="previewBox">
     <canvas id="polaroidCanvas"></canvas>
+  </div>
+
+  <!-- 사진 바로 아래 위치: 하단 글자 크기 조절 패널 -->
+  <div class="fontsize-panel" id="fontSizePanel">
+    <div class="fontsize-header">
+      <span class="option-label">🔤 글자 크기 조절</span>
+      <div class="fontsize-btns">
+        <button type="button" class="size-btn" onclick="setTextScalePreset(0.8)">작게</button>
+        <button type="button" class="size-btn active" onclick="setTextScalePreset(1.0)">보통</button>
+        <button type="button" class="size-btn" onclick="setTextScalePreset(1.2)">크게</button>
+      </div>
+    </div>
+    <div class="zoom-row">
+      <span style="font-size:13px; font-weight:bold; color:#8e8e93;">가</span>
+      <input type="range" id="fontScaleSlider" min="0.7" max="1.3" step="0.05" value="1.0">
+      <span style="font-size:18px; font-weight:bold; color:#1c1c1e;">가</span>
+    </div>
   </div>
 
   <!-- 사진 크기·위치 조절 -->
@@ -204,6 +268,8 @@
   const galleryInput = document.getElementById('gallery-input');
   const previewBox = document.getElementById('previewBox');
   const adjustPanel = document.getElementById('adjustPanel');
+  const fontSizePanel = document.getElementById('fontSizePanel');
+  const fontScaleSlider = document.getElementById('fontScaleSlider');
   const zoomSlider = document.getElementById('zoomSlider');
   const saveBtn = document.getElementById('saveBtn');
   const canvas = document.getElementById('polaroidCanvas');
@@ -212,9 +278,20 @@
   let currentImageFile = null;
   let capturedDate = null;
   let currentFilter = 1;
-  let currentAlign = 'center'; // 기본 정렬값: 가운데 정렬
+  let currentAlign = 'center';
+  let currentFrameStyle = 'polaroid';
+  let textScale = 1.0;
 
-  // 폰트 로드 보장
+  function insertEmoji(emoji) {
+    const start = messageInput.selectionStart ?? messageInput.value.length;
+    const end = messageInput.selectionEnd ?? messageInput.value.length;
+    const val = messageInput.value;
+    messageInput.value = val.substring(0, start) + emoji + val.substring(end);
+    messageInput.focus();
+    messageInput.setSelectionRange(start + emoji.length, start + emoji.length);
+    messageInput.dispatchEvent(new Event('input'));
+  }
+
   async function ensureFontLoaded() {
     try {
       await document.fonts.load('65px "NanumSeongSirCe"');
@@ -224,7 +301,6 @@
     }
   }
 
-  // ✨ 중복 '님' 제거 및 단일 '님' 적용을 완벽히 보장하는 함수
   function formatNameWithNim(inputName) {
     if (!inputName) return "김혜영 님";
     let cleaned = inputName.replace(/[\s님]+/g, '').trim();
@@ -247,6 +323,42 @@
     if (currentImageFile) updatePreview();
   }
 
+  function setTextScalePreset(scale) {
+    textScale = scale;
+    fontScaleSlider.value = scale;
+    const buttons = document.querySelectorAll('.size-btn');
+    buttons.forEach(btn => {
+      if ((scale === 0.8 && btn.textContent === '작게') ||
+          (scale === 1.0 && btn.textContent === '보통') ||
+          (scale === 1.2 && btn.textContent === '크게')) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    if (currentImageFile) updatePreview();
+  }
+
+  fontScaleSlider.addEventListener('input', () => {
+    textScale = parseFloat(fontScaleSlider.value);
+    const buttons = document.querySelectorAll('.size-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    if (textScale === 0.8) buttons[0].classList.add('active');
+    else if (textScale === 1.0) buttons[1].classList.add('active');
+    else if (textScale === 1.2) buttons[2].classList.add('active');
+    if (currentImageFile) updatePreview();
+  });
+
+  function setFrameStyle(styleKey) {
+    currentFrameStyle = styleKey;
+    const keys = ['polaroid', 'film', 'golden', 'hanji'];
+    const buttons = document.querySelectorAll('.style-btn');
+    buttons.forEach((btn, idx) => {
+      btn.classList.toggle('active', keys[idx] === styleKey);
+    });
+    if (currentImageFile) updatePreview();
+  }
+
   function setFilter(filterNum) {
     currentFilter = filterNum;
     const buttons = document.querySelectorAll('.filter-btn');
@@ -261,29 +373,28 @@
     if (currentImageFile) updatePreview();
   }
 
-  // ===== 사진 배치 상태 (크기·위치 조절) =====
+  // ===== 사진 배치 상태 =====
   const SIZE = 1200;
-  const AREA_X = 40, AREA_Y = 80, AREA_W = 1120;
-  const AREA_H_TEXT = 740;   // 문구 카드가 있을 때 사진 영역 높이
-  const AREA_H_FULL = 1040;  // 문구 안함일 때 사진 영역 높이
+  const AREA_X = 56, AREA_Y = 64, AREA_W = 1088;
+  const AREA_H_TEXT = 824;
+  const AREA_H_FULL = 1072;
   let AREA_H = AREA_H_TEXT;
   let showText = true;
-  const MAX_SRC = 2400;      // 아이폰 대용량 사진 보호용 작업 해상도 상한
+  const MAX_SRC = 2400;
   const MAX_ZOOM = 4;
   canvas.width = SIZE;
   canvas.height = SIZE;
 
-  let srcCanvas = null;      // 축소 보관한 원본
-  let coverScale = 1;        // 프레임을 꽉 채우는 배율
-  let minZoom = 1;           // 사진 전체가 보이는 최소 배율(cover 대비)
+  let srcCanvas = null;
+  let coverScale = 1;
+  let minZoom = 1;
   let zoom = 1, offX = 0, offY = 0;
   let rafId = 0;
-  let showGuides = false;   // 사진을 만지는 동안만 센터 표시 (저장 이미지에는 안 들어감)
+  let showGuides = false;
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function curScale() { return coverScale * zoom; }
 
-  // 사진이 프레임보다 크면 빈틈이 안 생기게, 작으면 프레임 밖으로 안 나가게 제한
   function offsetLimits() {
     const dw = srcCanvas.width * curScale();
     const dh = srcCanvas.height * curScale();
@@ -295,7 +406,6 @@
     offY = clamp(offY, -my, my);
   }
 
-  // cx, cy: 프레임 중심 기준 확대 기준점 (캔버스 px)
   function setZoom(newZoom, cx = 0, cy = 0) {
     if (!srcCanvas) return;
     newZoom = clamp(newZoom, minZoom, MAX_ZOOM);
@@ -308,7 +418,7 @@
     requestRender();
   }
 
-  function fillView() {   // 꽉 채우기 (세로 사진은 위쪽을 조금 더 보여줌)
+  function fillView() {
     zoom = 1; offX = 0; offY = 0;
     const my = Math.abs(srcCanvas.height * curScale() - AREA_H) / 2;
     offY = my * 0.7;
@@ -317,7 +427,7 @@
     requestRender();
   }
 
-  function fitAllView() { // 사진 전체 보이기
+  function fitAllView() {
     zoom = minZoom; offX = 0; offY = 0;
     zoomSlider.value = zoom;
     requestRender();
@@ -371,6 +481,7 @@
       zoomSlider.max = MAX_ZOOM;
 
       previewBox.style.display = 'block';
+      if (showText) fontSizePanel.style.display = 'flex';
       adjustPanel.style.display = 'flex';
       saveBtn.style.display = 'block';
       fillView();
@@ -392,16 +503,16 @@
     const rawName = nameInput.value.trim() || "김혜영";
     const currentName = formatNameWithNim(rawName);
     const currentMessage = messageInput.value.trim() || "늘 행복하시고 건강하세요!";
-    drawFilmStrip(currentName, currentMessage, currentFilter, currentAlign);
+    drawFilmStrip(currentName, currentMessage, currentFilter, currentAlign, currentFrameStyle);
   }
 
   function updatePreview() { requestRender(); }
 
-  // ===== 드래그(이동) / 핀치(확대·축소) / 휠 =====
+  // 제스처 핸들링
   const pointers = new Map();
   let lastDist = 0, lastMid = null;
-  let rawX = 0, rawY = 0;      // 자석 적용 전, 손가락을 따라가는 실제 위치
-  const SNAP_DIST = 14;        // 중앙에서 이 거리(캔버스 px) 안이면 딱 붙음
+  let rawX = 0, rawY = 0;
+  const SNAP_DIST = 14;
 
   function toCanvasXY(e) {
     const r = canvas.getBoundingClientRect();
@@ -434,7 +545,6 @@
       const lim = offsetLimits();
       rawX = clamp(rawX + (p.x - prev.x), -lim.mx, lim.mx);
       rawY = clamp(rawY + (p.y - prev.y), -lim.my, lim.my);
-      // 가운데 근처에서는 자석처럼 0에 붙음 (손가락은 계속 따라가므로 더 움직이면 떨어짐)
       offX = Math.abs(rawX) <= SNAP_DIST ? 0 : rawX;
       offY = Math.abs(rawY) <= SNAP_DIST ? 0 : rawY;
       pointers.set(e.pointerId, { x: p.x, y: p.y });
@@ -453,7 +563,7 @@
 
   function endPointer(e) {
     pointers.delete(e.pointerId);
-    if (pointers.size === 1) {          // 핀치 후 남은 손가락으로 이어서 이동
+    if (pointers.size === 1) {
       rawX = offX; rawY = offY;
       lastMid = null; lastDist = 0;
     }
@@ -480,13 +590,8 @@
   cameraInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
   galleryInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
 
-  nameInput.addEventListener('input', function() {
-    if (currentImageFile) updatePreview();
-  });
-
-  messageInput.addEventListener('input', function() {
-    if (currentImageFile) updatePreview();
-  });
+  nameInput.addEventListener('input', () => { if (currentImageFile) updatePreview(); });
+  messageInput.addEventListener('input', () => { if (currentImageFile) updatePreview(); });
 
   function getFormattedFileNameDate(dateObj) {
     const now = dateObj || new Date();
@@ -520,14 +625,12 @@
     return `${month}/${day}/${year} ${hours}:${minutes}${ampm}`;
   }
 
-  // ✨ 아이폰 사파리 완벽 호환 필터 알고리즘 (정확한 사진 영역 좌표 적용)
-  // ctx.filter는 사파리에서 무시되므로 픽셀 데이터를 직접 조작합니다.
   const FILTER_PRESETS = {
-    1: { contrast: 1.08, saturation: 1.15, brightness: 10, r: 1.12, g: 1.02, b: 0.82, fade: 0,  sepia: 0,    vignette: 0.15 }, // 따뜻함
-    2: { contrast: 1.25, saturation: 0.80, brightness: -5, r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0,    vignette: 0.35, teal: true }, // 시네마
-    3: { contrast: 0.92, saturation: 0.90, brightness: 5,  r: 1.08, g: 1.00, b: 0.85, fade: 30, sepia: 0.75, vignette: 0.45 }, // 빈티지
-    4: { contrast: 0.85, saturation: 0.85, brightness: 28, r: 1.03, g: 1.00, b: 1.02, fade: 15, sepia: 0,    vignette: 0 },    // 소프트
-    5: { contrast: 1.20, saturation: 0.70, brightness: 0,  r: 1.10, g: 1.04, b: 0.80, fade: 40, sepia: 0.45, vignette: 0.5 }   // 로그레트로
+    1: { contrast: 1.08, saturation: 1.15, brightness: 10, r: 1.12, g: 1.02, b: 0.82, fade: 0,  sepia: 0,    vignette: 0.15 },
+    2: { contrast: 1.25, saturation: 0.80, brightness: -5, r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0,    vignette: 0.35, teal: true },
+    3: { contrast: 0.92, saturation: 0.90, brightness: 5,  r: 1.08, g: 1.00, b: 0.85, fade: 30, sepia: 0.75, vignette: 0.45 },
+    4: { contrast: 0.85, saturation: 0.85, brightness: 28, r: 1.03, g: 1.00, b: 1.02, fade: 15, sepia: 0,    vignette: 0 },
+    5: { contrast: 1.20, saturation: 0.70, brightness: 0,  r: 1.10, g: 1.04, b: 0.80, fade: 40, sepia: 0.45, vignette: 0.5 }
   };
 
   function applyPixelFilter(ctx, startX, startY, width, height, filterNum) {
@@ -536,14 +639,13 @@
 
     const imgData = ctx.getImageData(startX, startY, width, height);
     const data = imgData.data;
-    const clamp = (v) => v < 0 ? 0 : (v > 255 ? 255 : v);
+    const clampVal = (v) => v < 0 ? 0 : (v > 255 ? 255 : v);
 
     for (let i = 0; i < data.length; i += 4) {
       let r = data[i];
       let g = data[i + 1];
       let b = data[i + 2];
 
-      // 세피아 혼합
       if (p.sepia) {
         const sr = r * 0.393 + g * 0.769 + b * 0.189;
         const sg = r * 0.349 + g * 0.686 + b * 0.168;
@@ -553,23 +655,19 @@
         b += (sb - b) * p.sepia;
       }
 
-      // 채도
       const lum = r * 0.299 + g * 0.587 + b * 0.114;
       r = lum + (r - lum) * p.saturation;
       g = lum + (g - lum) * p.saturation;
       b = lum + (b - lum) * p.saturation;
 
-      // 대비 및 밝기
       r = (r - 128) * p.contrast + 128 + p.brightness;
       g = (g - 128) * p.contrast + 128 + p.brightness;
       b = (b - 128) * p.contrast + 128 + p.brightness;
 
-      // 색온도
       r *= p.r;
       g *= p.g;
       b *= p.b;
 
-      // 시네마: 어두운 곳은 청록, 밝은 곳은 주황
       if (p.teal) {
         const t = lum / 255;
         r += (t - 0.5) * 40;
@@ -577,20 +675,18 @@
         b += (0.5 - t) * 45;
       }
 
-      // 빛바랜 느낌 (검정 들뜸)
       if (p.fade) {
         r = p.fade + r * (1 - p.fade / 255);
         g = p.fade + g * (1 - p.fade / 255);
         b = p.fade + b * (1 - p.fade / 255);
       }
 
-      data[i]     = clamp(r);
-      data[i + 1] = clamp(g);
-      data[i + 2] = clamp(b);
+      data[i]     = clampVal(r);
+      data[i + 1] = clampVal(g);
+      data[i + 2] = clampVal(b);
     }
     ctx.putImageData(imgData, startX, startY);
 
-    // 비네팅 (가장자리 어둡게)
     if (p.vignette) {
       const cx = startX + width / 2;
       const cy = startY + height / 2;
@@ -602,12 +698,236 @@
     }
   }
 
-  function drawFilmPerforations(width, height, dateStr) {
+  function drawGoldenDecorations() {
+    const bgGrad = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+    bgGrad.addColorStop(0, '#ffffff');
+    bgGrad.addColorStop(0.3, '#fbf8f3');
+    bgGrad.addColorStop(0.7, '#f7f1e7');
+    bgGrad.addColorStop(1, '#ffffff');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(212, 175, 55, 0.08)';
+    for (let i = 0; i < 20; i++) {
+      const rx = (i * 137) % SIZE;
+      const ry = (i * 243) % SIZE;
+      ctx.beginPath();
+      ctx.arc(rx, ry, 60 + (i % 5) * 30, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const makeGoldGrad = (x1, y1, x2, y2) => {
+      const g = ctx.createLinearGradient(x1, y1, x2, y2);
+      g.addColorStop(0, '#cda851');
+      g.addColorStop(0.3, '#f9e79f');
+      g.addColorStop(0.5, '#d4af37');
+      g.addColorStop(0.8, '#aa7c11');
+      g.addColorStop(1, '#e5c068');
+      return g;
+    };
+
+    ctx.strokeStyle = makeGoldGrad(24, 24, SIZE - 24, SIZE - 24);
+    ctx.lineWidth = 3.5;
+    ctx.strokeRect(24, 24, SIZE - 48, SIZE - 48);
+
+    ctx.strokeStyle = 'rgba(197, 160, 89, 0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(34, 34, SIZE - 68, SIZE - 68);
+
+    // 좌상단 웨이브
+    ctx.fillStyle = '#8f6838';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(240, 0);
+    ctx.bezierCurveTo(200, 100, 80, 140, 0, 220);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = makeGoldGrad(0, 0, 220, 200);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(200, 0);
+    ctx.bezierCurveTo(160, 80, 70, 110, 0, 170);
+    ctx.closePath();
+    ctx.fill();
+
+    // 우하단 웨이브
+    ctx.fillStyle = '#7a542b';
+    ctx.beginPath();
+    ctx.moveTo(SIZE, SIZE);
+    ctx.lineTo(SIZE - 250, SIZE);
+    ctx.bezierCurveTo(SIZE - 190, SIZE - 120, SIZE - 100, SIZE - 150, SIZE, SIZE - 230);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = makeGoldGrad(SIZE - 200, SIZE - 180, SIZE, SIZE);
+    ctx.beginPath();
+    ctx.moveTo(SIZE, SIZE);
+    ctx.lineTo(SIZE - 200, SIZE);
+    ctx.bezierCurveTo(SIZE - 150, SIZE - 90, SIZE - 70, SIZE - 120, SIZE, SIZE - 170);
+    ctx.closePath();
+    ctx.fill();
+
+    const dots = [
+      [90, 260], [140, 210], [180, 150], [240, 90], [280, 40],
+      [SIZE - 120, SIZE - 260], [SIZE - 170, SIZE - 200], [SIZE - 220, SIZE - 130], [SIZE - 280, SIZE - 70]
+    ];
+    ctx.fillStyle = '#d4af37';
+    dots.forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function drawHanjiDecorations() {
+    const bgGrad = ctx.createRadialGradient(SIZE * 0.35, SIZE * 0.35, 80, SIZE * 0.5, SIZE * 0.5, SIZE * 0.75);
+    bgGrad.addColorStop(0, '#fbf8f0');
+    bgGrad.addColorStop(0.55, '#f4ece1');
+    bgGrad.addColorStop(1, '#e7dcce');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(150, 120, 90, 0.04)';
+    for (let i = 0; i < 45; i++) {
+      const rx = (i * 187) % SIZE;
+      const ry = (i * 293) % SIZE;
+      ctx.beginPath();
+      ctx.arc(rx, ry, 35 + (i % 6) * 18, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.strokeStyle = 'rgba(105, 95, 75, 0.85)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(SIZE - 40, SIZE);
+    ctx.bezierCurveTo(SIZE - 90, SIZE - 250, SIZE - 110, SIZE - 450, SIZE - 50, SIZE - 620);
+    ctx.stroke();
+
+    const drawLeaf = (cx, cy, angle, len, w, color, addVein = true) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(w, len * 0.5, 0, len);
+      ctx.quadraticCurveTo(-w, len * 0.5, 0, 0);
+      ctx.fill();
+      if (addVein) {
+        ctx.strokeStyle = 'rgba(60, 70, 45, 0.4)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(0, 4);
+        ctx.lineTo(0, len - 6);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
+
+    const leaves = [
+      [SIZE - 50, SIZE - 100, -0.6, 68, 17, 'rgba(110, 120, 85, 0.75)'],
+      [SIZE - 75, SIZE - 190, -1.0, 75, 19, 'rgba(92, 105, 68, 0.8)'],
+      [SIZE - 95, SIZE - 280, -1.2, 70, 18, 'rgba(118, 128, 92, 0.75)'],
+      [SIZE - 105, SIZE - 380, -1.0, 68, 17, 'rgba(100, 112, 75, 0.8)'],
+      [SIZE - 95, SIZE - 470, -0.8, 62, 16, 'rgba(115, 124, 88, 0.75)'],
+      [SIZE - 75, SIZE - 550, -0.5, 52, 14, 'rgba(125, 134, 98, 0.7)'],
+      [SIZE - 55, SIZE - 605, -0.3, 42, 12, 'rgba(132, 140, 105, 0.65)']
+    ];
+    leaves.forEach(([x, y, a, l, w, c]) => drawLeaf(x, y, a, l, w, c));
+
+    const drawFlower = (fx, fy, scale = 1) => {
+      ctx.save();
+      ctx.translate(fx, fy);
+      ctx.scale(scale, scale);
+
+      ctx.fillStyle = 'rgba(160, 130, 100, 0.18)';
+      ctx.beginPath();
+      ctx.arc(0, 0, 68, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (let i = 0; i < 5; i++) {
+        const ang = (i * (Math.PI * 2) / 5) - Math.PI / 2;
+        ctx.save();
+        ctx.rotate(ang);
+
+        const petalGrad = ctx.createRadialGradient(0, 32, 5, 0, 35, 48);
+        petalGrad.addColorStop(0, '#ffffff');
+        petalGrad.addColorStop(0.55, '#fcf5e5');
+        petalGrad.addColorStop(0.9, '#f6e4cc');
+        petalGrad.addColorStop(1, '#edd0b4');
+
+        ctx.fillStyle = petalGrad;
+        ctx.strokeStyle = 'rgba(195, 165, 140, 0.6)';
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 10);
+        ctx.bezierCurveTo(28, 22, 38, 52, 16, 68);
+        ctx.bezierCurveTo(4, 76, -4, 76, -16, 68);
+        ctx.bezierCurveTo(-38, 52, -28, 22, 0, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(215, 165, 130, 0.4)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(0, 16);
+        ctx.lineTo(0, 52);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      const centerGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 18);
+      centerGrad.addColorStop(0, '#c66922');
+      centerGrad.addColorStop(0.6, '#e08e2b');
+      centerGrad.addColorStop(1, '#f1b34a');
+      ctx.fillStyle = centerGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#6e3009';
+      for (let j = 0; j < 8; j++) {
+        const jAng = j * (Math.PI * 2 / 8);
+        ctx.beginPath();
+        ctx.arc(Math.cos(jAng) * 9, Math.sin(jAng) * 9, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    };
+
+    drawFlower(SIZE - 110, SIZE - 170, 1.35);
+    drawFlower(SIZE - 65, SIZE - 280, 0.75);
+
+    const goldFlakes = [
+      [80, 120, 4.5], [140, 360, 3.5], [100, 700, 5], [200, 950, 4],
+      [SIZE - 200, 160, 4.5], [SIZE - 150, 300, 4], [SIZE - 240, 520, 4.5], [SIZE - 210, 740, 5]
+    ];
+    ctx.fillStyle = 'rgba(212, 165, 75, 0.55)';
+    goldFlakes.forEach(([x, y, r]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.strokeStyle = 'rgba(175, 158, 138, 0.5)';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(26, 26, SIZE - 52, SIZE - 52);
+    ctx.restore();
+  }
+
+  // 필름 타공 (텍스트는 외부 통합 렌더러에서 단일 처리)
+  function drawFilmPerforations(width, height) {
     ctx.fillStyle = '#111113'; 
     ctx.fillRect(0, 0, width, 75);           
     ctx.fillRect(0, height - 75, width, 75); 
 
-    ctx.fillStyle = '#1c1c1e';
+    ctx.fillStyle = '#2c2c2e';
     const holeWidth = 42;
     const holeHeight = 45;
     const holeYTop = 15;
@@ -623,30 +943,49 @@
       ctx.roundRect(x, holeYBottom, holeWidth, holeHeight, 6);
       ctx.fill();
     }
-
-    // 상단 "GOD LOVES YOU" 각인
-    ctx.fillStyle = '#8e8e93';
-    ctx.font = 'bold 22px monospace';
-    ctx.fillText('GOD LOVES YOU', 35, 52);
-
-    // 하단 날짜 각인
-    ctx.fillStyle = '#8e8e93'; 
-    ctx.font = 'bold 24px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(dateStr, width - 40, height - 28);
-    ctx.textAlign = 'left'; 
   }
 
-  function drawFilmStrip(nameText, messageText, filterNum, alignMode) {
-    ctx.fillStyle = '#1c1c1e';
-    ctx.fillRect(0, 0, SIZE, SIZE);
+  function drawPolaroidInnerShadow(x, y, w, h) {
+    ctx.save();
+    const topGrad = ctx.createLinearGradient(x, y, x, y + 16);
+    topGrad.addColorStop(0, 'rgba(0, 0, 0, 0.28)');
+    topGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(x, y, w, 16);
 
-    // 사진을 프레임 안에 배치 (프레임 밖은 잘라냄, 남는 곳은 검정)
+    const leftGrad = ctx.createLinearGradient(x, y, x + 16, y);
+    leftGrad.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
+    leftGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = leftGrad;
+    ctx.fillRect(x, y, 16, h);
+
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x, y, w, h);
+    ctx.restore();
+  }
+
+  function drawFilmStrip(nameText, messageText, filterNum, alignMode, styleKey) {
+    // 1. 프레임 배경
+    if (styleKey === 'golden') {
+      drawGoldenDecorations();
+    } else if (styleKey === 'hanji') {
+      drawHanjiDecorations();
+    } else if (styleKey === 'polaroid') {
+      ctx.fillStyle = '#fcfcfc';
+      ctx.fillRect(0, 0, SIZE, SIZE);
+    } else {
+      ctx.fillStyle = '#1c1c1e';
+      ctx.fillRect(0, 0, SIZE, SIZE);
+    }
+
+    // 2. 사진 클리핑 및 렌더링
     ctx.save();
     ctx.beginPath();
     ctx.rect(AREA_X, AREA_Y, AREA_W, AREA_H);
     ctx.clip();
-    ctx.fillStyle = '#0b0b0c';
+    
+    ctx.fillStyle = styleKey === 'film' ? '#0b0b0c' : '#ffffff';
     ctx.fillRect(AREA_X, AREA_Y, AREA_W, AREA_H);
 
     const s = curScale();
@@ -659,55 +998,125 @@
     ctx.drawImage(srcCanvas, 0, 0, srcCanvas.width, srcCanvas.height, dx, dy, dw, dh);
     ctx.restore();
 
+    // 3. 필터 적용
     applyPixelFilter(ctx, AREA_X, AREA_Y, AREA_W, AREA_H, filterNum);
 
+    // 4. 스타일별 사진 테두리
+    if (styleKey === 'polaroid') {
+      drawPolaroidInnerShadow(AREA_X, AREA_Y, AREA_W, AREA_H);
+    } else if (styleKey === 'golden') {
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.85)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(AREA_X, AREA_Y, AREA_W, AREA_H);
+    } else if (styleKey === 'hanji') {
+      ctx.strokeStyle = 'rgba(120, 105, 90, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(AREA_X, AREA_Y, AREA_W, AREA_H);
+    }
+
+    // 5. 텍스트 표시
     if (showText) {
-    // 하단 메타 카드 박스
-    const cardX = AREA_X;
-    const cardY = AREA_Y + AREA_H + 12;
-    const cardWidth = AREA_W;
-    const cardHeight = 230;
-    const cornerRadius = 16;
+      const cardX = AREA_X;
+      const cardY = AREA_Y + AREA_H + 12;
+      const cardWidth = AREA_W;
+      const cardHeight = styleKey === 'film' ? 230 : 220;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
-    ctx.beginPath();
-    ctx.roundRect(cardX, cardY, cardWidth, cardHeight, cornerRadius);
-    ctx.fill();
-
-    let textX = cardX + 45;
-    if (alignMode === 'center') {
-      textX = cardX + (cardWidth / 2);
-    } else if (alignMode === 'right') {
-      textX = cardX + cardWidth - 45;
-    }
-
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = alignMode;
-    // 카드 폭을 넘으면 글자 크기를 자동으로 줄여서 한 줄에 맞춤
-    const maxTextW = cardWidth - 90;
-    const fitFont = (text, startPx = 65, minPx = 24) => {
-      let px = startPx;
-      ctx.font = `${px}px "NanumSeongSirCe", cursive`;
-      const w = ctx.measureText(text).width;
-      if (w > maxTextW) {
-        px = Math.max(minPx, Math.floor(startPx * maxTextW / w));
-        ctx.font = `${px}px "NanumSeongSirCe", cursive`;
-        while (px > minPx && ctx.measureText(text).width > maxTextW) {
-          px -= 1;
-          ctx.font = `${px}px "NanumSeongSirCe", cursive`;
-        }
+      if (styleKey === 'film') {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+        ctx.beginPath();
+        ctx.roundRect(cardX, cardY, cardWidth, cardHeight, 16);
+        ctx.fill();
+      } else if (styleKey === 'golden') {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.beginPath();
+        ctx.roundRect(cardX + 20, cardY + 10, cardWidth - 40, cardHeight - 20, 12);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
       }
-    };
-    fitFont(nameText);
-    ctx.fillText(nameText, textX, cardY + 75);
-    fitFont(messageText);
-    ctx.fillText(messageText, textX, cardY + 165);
-    ctx.textAlign = 'left';
+
+      const rightPadding = (styleKey === 'hanji') ? 140 : 30;
+      let textX = cardX + 30;
+      if (alignMode === 'center') {
+        textX = cardX + ((cardWidth - (styleKey === 'hanji' ? 60 : 0)) / 2);
+      } else if (alignMode === 'right') {
+        textX = cardX + cardWidth - rightPadding;
+      }
+
+      if (styleKey === 'film') {
+        ctx.fillStyle = '#ffffff';
+      } else if (styleKey === 'golden') {
+        ctx.fillStyle = '#2f2010';
+      } else if (styleKey === 'hanji') {
+        ctx.fillStyle = '#222620';
+      } else {
+        ctx.fillStyle = '#1a1a1a';
+      }
+
+      ctx.textAlign = alignMode;
+      const maxTextW = cardWidth - (styleKey === 'hanji' ? 180 : 80);
+      
+      const fitFont = (text, basePx = 65, minPx = 20) => {
+        let px = Math.round(basePx * textScale);
+        ctx.font = `${px}px "NanumSeongSirCe", cursive`;
+        const w = ctx.measureText(text).width;
+        if (w > maxTextW) {
+          px = Math.max(minPx, Math.floor(px * maxTextW / w));
+          ctx.font = `${px}px "NanumSeongSirCe", cursive`;
+          while (px > minPx && ctx.measureText(text).width > maxTextW) {
+            px -= 1;
+            ctx.font = `${px}px "NanumSeongSirCe", cursive`;
+          }
+        }
+      };
+
+      fitFont(nameText, 66);
+      ctx.fillText(nameText, textX, cardY + (styleKey === 'film' ? 75 : 80));
+      fitFont(messageText, 64);
+      ctx.fillText(messageText, textX, cardY + (styleKey === 'film' ? 165 : 170));
+      ctx.textAlign = 'left';
     }
 
-    drawFilmPerforations(SIZE, SIZE, getFilmStripDate(capturedDate || new Date()));
+    // 6. 필름 타공 (필름 모드일 때만 적용)
+    if (styleKey === 'film') {
+      drawFilmPerforations(SIZE, SIZE);
+    }
 
-    // 이동 중 센터 표시 (프레임 중앙 십자선 + 사진 중심점)
+    // ✨ 7. 모든 프레임 공통: [오른쪽 상단] "GOD LOVES YOU" 각인 (동일 좌표 SIZE - 56, Y: 48)
+    ctx.save();
+    ctx.font = 'bold 22px monospace';
+    ctx.textAlign = 'right';
+
+    if (styleKey === 'film') {
+      ctx.fillStyle = '#8e8e93';
+    } else if (styleKey === 'golden') {
+      ctx.fillStyle = '#aa8035'; // 앤틱 골드
+    } else if (styleKey === 'hanji') {
+      ctx.fillStyle = '#827462'; // 먹빛 브라운
+    } else { // polaroid
+      ctx.fillStyle = '#8e8e93';
+    }
+    ctx.fillText('GOD LOVES YOU', SIZE - 56, 48);
+
+    // ✨ 8. 모든 프레임 공통: [오른쪽 하단] 날짜·시간 각인 (선과 겹치지 않게 완벽 배치)
+    const dateStr = getFilmStripDate(capturedDate || new Date());
+    if (styleKey === 'film') {
+      ctx.fillStyle = '#8e8e93';
+      ctx.fillText(dateStr, SIZE - 56, SIZE - 28);
+    } else if (styleKey === 'golden') {
+      ctx.fillStyle = '#aa8035';
+      ctx.fillText(dateStr, SIZE - 56, SIZE - 16);
+    } else if (styleKey === 'hanji') {
+      ctx.fillStyle = '#7a6e5e';
+      ctx.fillText(dateStr, SIZE - 56, SIZE - 16);
+    } else { // polaroid
+      ctx.fillStyle = '#8e8e93';
+      ctx.fillText(dateStr, SIZE - 56, SIZE - 24);
+    }
+    ctx.restore();
+
+    // 9. 가이드선
     if (showGuides) {
       const cx = AREA_X + AREA_W / 2, cy = AREA_Y + AREA_H / 2;
       const vOk = Math.abs(offX) <= 4, hOk = Math.abs(offY) <= 4;
@@ -724,7 +1133,7 @@
       drawLine(cx, AREA_Y, cx, AREA_Y + AREA_H, vOk);
       drawLine(AREA_X, cy, AREA_X + AREA_W, cy, hOk);
       ctx.setLineDash([]);
-      // 사진의 중심점
+      
       const px = dx + dw / 2, py = dy + dh / 2;
       ctx.lineWidth = 4;
       ctx.strokeStyle = (vOk && hOk) ? '#34c759' : '#ffd60a';
@@ -781,6 +1190,7 @@
     updateCharCount();
     renderPhrases();
     previewBox.style.display = 'none';
+    fontSizePanel.style.display = 'none';
     adjustPanel.style.display = 'none';
     saveBtn.style.display = 'none';
     cameraInput.value = '';
@@ -790,13 +1200,11 @@
     currentImageFile = null;
   });
 
-  // ===== 자주 쓰는 문구 저장/선택 =====
-  const PHRASE_KEY = 'hwachoPhrases';
+  // ===== 자주 쓰는 문구 =====
+  const PHRASE_KEY = 'hwachoPhrases_v2';
   const DEFAULT_PHRASES = [
     '늘 행복하시고 건강하세요!',
-    '하나님은 당신을 사랑하세요',
-    '주님의 평안이 함께하시길 기도합니다',
-    '항상 응원하고 기도합니다'
+    '하나님은 당신을 사랑하세요.'
   ];
   const phraseList = document.getElementById('phraseList');
   const savePhraseBtn = document.getElementById('savePhraseBtn');
@@ -806,7 +1214,7 @@
       const raw = localStorage.getItem(PHRASE_KEY);
       if (raw) {
         const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) return arr.map(t => t === '하나님이 당신을 사랑하십니다' ? '하나님은 당신을 사랑하세요' : t);
+        if (Array.isArray(arr) && arr.length > 0) return arr;
       }
     } catch (e) {}
     return DEFAULT_PHRASES.slice();
@@ -865,7 +1273,7 @@
   renderPhrases();
 
   // ===== 문구 글자 수 표시 =====
-  const MAX_MESSAGE_CHARS = 16;   // 이 글자 수까지는 기본 크기로 표시 (넘으면 자동으로 작아짐)
+  const MAX_MESSAGE_CHARS = 16;
   const charCount = document.getElementById('charCount');
 
   function updateCharCount() {
@@ -882,7 +1290,7 @@
   messageInput.addEventListener('input', updateCharCount);
   updateCharCount();
 
-  // ===== 하단 문구 넣기 / 안함 =====
+  // ===== 하단 문구 표시 토글 =====
   function setShowText(on) {
     showText = on;
     document.querySelectorAll('.text-btn').forEach((btn, idx) => {
@@ -890,11 +1298,11 @@
     });
     document.getElementById('messageGroup').style.display = on ? '' : 'none';
     document.getElementById('alignSection').style.display = on ? 'flex' : 'none';
+    fontSizePanel.style.display = (on && srcCanvas) ? 'flex' : 'none';
 
     AREA_H = on ? AREA_H_TEXT : AREA_H_FULL;
     if (!srcCanvas) return;
 
-    // 사진의 실제 크기는 유지한 채 새 영역에 맞게 다시 계산
     const absScale = coverScale * zoom;
     coverScale = Math.max(AREA_W / srcCanvas.width, AREA_H / srcCanvas.height);
     const containScale = Math.min(AREA_W / srcCanvas.width, AREA_H / srcCanvas.height);
