@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>화초전도 사진찍기</title>
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="apple-mobile-web-app-title" content="화초전도">
+  <!-- 링크 공유(카카오톡·문자 등) 미리보기 -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="화초전도 사진찍기">
+  <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
+  <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
+  <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <!-- Exif 데이터를 읽기 위한 라이브러리 -->
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+  
+  <!-- 네이버 클로바 공식 나눔손글씨 성실체 웹폰트 URL -->
+  <link href="https://hangeul.pstatic.net/hangeul_static/css/NanumSeongSirCe.css" rel="stylesheet">
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { padding: 20px; background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; }
+    
+    h2 { text-align: center; color: #1c1c1e !important; margin: 10px 0 5px 0; font-size: 24px; font-weight: bold; }
+    
+    .input-group { display: flex; flex-direction: column; gap: 4px; }
+    .input-label { font-size: 13px; font-weight: bold; color: #3a3a3c; }
+
+    input[type="text"] { 
+      width: 100%; 
+      padding: 14px; 
+      font-size: 16px; 
+      border: 1.5px solid #007aff; 
+      border-radius: 12px; 
+      outline: none; 
+      background-color: #ffffff !important; 
+      color: #000000 !important; 
+      -webkit-text-fill-color: #000000 !important;
+    }
+    input[type="text"]::placeholder {
+      color: #8e8e93 !important;
+      -webkit-text-fill-color: #8e8e93 !important;
+    }
+
+    /* 입력창 나눔손글씨 성실체 적용 */
+    #nameInput, #messageInput {
+      font-family: 'NanumSeongSirCe', cursive !important;
+      font-size: 26px !important;
+      letter-spacing: 0.5px;
+    }
+
+    /* 공통 토글 버튼 그룹 (필터 & 정렬) */
+    .option-label { font-size: 13px; font-weight: bold; color: #3a3a3c; }
+    .option-group { display: flex; gap: 4px; width: 100%; }
+    .option-btn { 
+      flex: 1; 
+      padding: 10px 0; 
+      font-size: 12px; 
+      font-weight: bold; 
+      border: 1.5px solid #c7c7cc; 
+      border-radius: 8px; 
+      background-color: #ffffff; 
+      color: #3a3a3c; 
+      cursor: pointer; 
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .option-btn.active { 
+      background-color: #007aff; 
+      color: #ffffff; 
+      border-color: #007aff; 
+    }
+
+    .btn { 
+      width: 100%; 
+      padding: 15px; 
+      font-size: 17px; 
+      font-weight: bold; 
+      color: #ffffff !important; 
+      -webkit-text-fill-color: #ffffff !important;
+      border: none; 
+      border-radius: 12px; 
+      cursor: pointer; 
+      text-align: center; 
+      display: block; 
+      text-decoration: none;
+    }
+    .btn-camera { background-color: #007aff; }
+    .btn-gallery { background-color: #5856d6; }
+    .btn-save { background-color: #34c759; display: none; margin-top: 5px; }
+
+    /* 1:1 정사각형 미리보기 박스 */
+    .preview-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; display: none; background: #1c1c1e; text-align: center; margin-top: 5px; }
+    #polaroidCanvas { width: 100%; height: 100%; display: block; touch-action: none; -webkit-user-select: none; user-select: none; cursor: grab; }
+    .preview-box { touch-action: none; }
+
+    /* 사진 크기·위치 조절 패널 */
+    .adjust-panel { display: none; flex-direction: column; gap: 8px; background: #ffffff; border-radius: 12px; padding: 12px; }
+    .adjust-hint { font-size: 12px; color: #6c6c70; text-align: center; line-height: 1.4; }
+    .zoom-row { display: flex; align-items: center; gap: 8px; font-size: 18px; }
+    .zoom-row input[type="range"] { flex: 1; }
+    .adjust-btns { display: flex; gap: 6px; }
+    
+    .file-input { display: none; }
+
+    /* 저장 문구 선택 */
+    .label-row { display: flex; align-items: center; justify-content: space-between; }
+    .seg-group { display: flex; border: 1.5px solid #007aff; border-radius: 8px; overflow: hidden; }
+    .seg-btn { padding: 6px 14px; font-size: 13px; font-weight: bold; border: none; background: #ffffff; color: #007aff; cursor: pointer; }
+    .seg-btn.active { background: #007aff; color: #ffffff; }
+    .char-count { font-size: 12px; text-align: right; color: #8e8e93; }
+    .char-count.over { color: #ff3b30; font-weight: bold; }
+    .phrase-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .phrase-chip { display: inline-flex; align-items: center; background: #ffffff; border: 1.5px solid #c7c7cc; border-radius: 16px; overflow: hidden; max-width: 100%; }
+    .phrase-chip.active { border-color: #007aff; background: #e8f1ff; }
+    .phrase-chip .phrase-text { border: none; background: none; padding: 7px 4px 7px 12px; font-size: 13px; color: #1c1c1e; cursor: pointer; text-align: left; }
+    .phrase-chip .phrase-del { border: none; background: none; padding: 7px 10px 7px 4px; font-size: 14px; color: #8e8e93; cursor: pointer; }
+    .phrase-save-btn { align-self: flex-start; padding: 7px 12px; font-size: 13px; font-weight: bold; color: #007aff; background: #ffffff; border: 1.5px solid #007aff; border-radius: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🌿 화초전도 사진찍기</h2>
+
+  <div class="input-group">
+    <label class="input-label">대상자 이름</label>
+    <input type="text" id="nameInput" placeholder="이름 입력">
+  </div>
+
+  <div class="input-group">
+    <div class="label-row">
+      <label class="input-label">문구</label>
+      <div class="seg-group">
+        <button type="button" class="seg-btn text-btn active" onclick="setShowText(true)">문구</button>
+        <button type="button" class="seg-btn text-btn" onclick="setShowText(false)">문구안함</button>
+      </div>
+    </div>
+  <div class="input-group" id="messageGroup">
+    <input type="text" id="messageInput" value="늘 행복하시고 건강하세요!" placeholder="늘 행복하시고 건강하세요!">
+    <div class="char-count" id="charCount"></div>
+    <button type="button" class="phrase-save-btn" id="savePhraseBtn">＋ 현재 문구 저장</button>
+    <div class="phrase-list" id="phraseList"></div>
+  </div>
+  </div>
+
+  <!-- 사진 촬영 및 앨범 선택 버튼 -->
+  <label for="camera-input" class="btn btn-camera">📷 사진 찍기</label>
+  <input type="file" id="camera-input" class="file-input" accept="image/*" capture="environment">
+
+  <label for="gallery-input" class="btn btn-gallery">🖼️ 앨범에서 사진 선택</label>
+  <input type="file" id="gallery-input" class="file-input" accept="image/*">
+
+  <div id="alignSection" style="display:flex; flex-direction:column; gap:12px;">
+  <!-- 텍스트 정렬 선택 옵션 (기본: 가운데 정렬) -->
+  <div class="option-label">📐 카드 텍스트 정렬 선택</div>
+  <div class="option-group">
+    <button type="button" class="option-btn align-btn" onclick="setTextAlign('left')">왼쪽 정렬</button>
+    <button type="button" class="option-btn align-btn active" onclick="setTextAlign('center')">가운데 정렬</button>
+    <button type="button" class="option-btn align-btn" onclick="setTextAlign('right')">오른쪽 정렬</button>
+  </div>
+  </div>
+
+  <!-- 필터 선택 영역 -->
+  <div class="option-label">🎨 필름 카메라 감성 필터 선택</div>
+  <div class="option-group">
+    <button type="button" class="option-btn filter-btn active" onclick="setFilter(1)">1.따뜻함</button>
+    <button type="button" class="option-btn filter-btn" onclick="setFilter(2)">2.시네마</button>
+    <button type="button" class="option-btn filter-btn" onclick="setFilter(3)">3.빈티지</button>
+    <button type="button" class="option-btn filter-btn" onclick="setFilter(4)">4.소프트</button>
+    <button type="button" class="option-btn filter-btn" onclick="setFilter(5)">5.레트로</button>
+  </div>
+
+  <!-- 1:1 비율 미리보기 -->
+  <div class="preview-box" id="previewBox">
+    <canvas id="polaroidCanvas"></canvas>
+  </div>
+
+  <!-- 사진 크기·위치 조절 -->
+  <div class="adjust-panel" id="adjustPanel">
+    <div class="adjust-hint">☝️ 사진을 드래그하면 위치 이동<br>✌️ 두 손가락으로 확대·축소 (또는 아래 슬라이더)</div>
+    <div class="zoom-row">
+      <span>➖</span>
+      <input type="range" id="zoomSlider" min="0.3" max="4" step="0.01" value="1">
+      <span>➕</span>
+    </div>
+    <div class="adjust-btns">
+      <button type="button" class="option-btn" id="fitAllBtn">전체 보이기</button>
+      <button type="button" class="option-btn" id="fillBtn">꽉 채우기</button>
+    </div>
+  </div>
+
+  <button id="saveBtn" class="btn btn-save">💾 사진 저장 및 공유하기</button>
+</div>
+
+<script>
+  const nameInput = document.getElementById('nameInput');
+  const messageInput = document.getElementById('messageInput');
+  const cameraInput = document.getElementById('camera-input');
+  const galleryInput = document.getElementById('gallery-input');
+  const previewBox = document.getElementById('previewBox');
+  const adjustPanel = document.getElementById('adjustPanel');
+  const zoomSlider = document.getElementById('zoomSlider');
+  const saveBtn = document.getElementById('saveBtn');
+  const canvas = document.getElementById('polaroidCanvas');
+  const ctx = canvas.getContext('2d');
+
+  let currentImageFile = null;
+  let capturedDate = null;
+  let currentFilter = 1;
+  let currentAlign = 'center'; // 기본 정렬값: 가운데 정렬
+
+  // 폰트 로드 보장
+  async function ensureFontLoaded() {
+    try {
+      await document.fonts.load('65px "NanumSeongSirCe"');
+      await document.fonts.ready;
+    } catch (e) {
+      console.log('폰트 로드 대기 중...', e);
+    }
+  }
+
+  // ✨ 중복 '님' 제거 및 단일 '님' 적용을 완벽히 보장하는 함수
+  function formatNameWithNim(inputName) {
+    if (!inputName) return "김혜영 님";
+    let cleaned = inputName.replace(/[\s님]+/g, '').trim();
+    return cleaned ? cleaned + " 님" : "김혜영 님";
+  }
+
+  function setTextAlign(align) {
+    currentAlign = align;
+    const buttons = document.querySelectorAll('.align-btn');
+    buttons.forEach((btn) => {
+      if ((align === 'left' && btn.textContent.includes('왼쪽')) ||
+          (align === 'center' && btn.textContent.includes('가운데')) ||
+          (align === 'right' && btn.textContent.includes('오른쪽'))) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    if (currentImageFile) updatePreview();
+  }
+
+  function setFilter(filterNum) {
+    currentFilter = filterNum;
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach((btn, idx) => {
+      if (idx + 1 === filterNum) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    if (currentImageFile) updatePreview();
+  }
+
+  // ===== 사진 배치 상태 (크기·위치 조절) =====
+  const SIZE = 1200;
+  const AREA_X = 40, AREA_Y = 80, AREA_W = 1120;
+  const AREA_H_TEXT = 740;   // 문구 카드가 있을 때 사진 영역 높이
+  const AREA_H_FULL = 1040;  // 문구 안함일 때 사진 영역 높이
+  let AREA_H = AREA_H_TEXT;
+  let showText = true;
+  const MAX_SRC = 2400;      // 아이폰 대용량 사진 보호용 작업 해상도 상한
+  const MAX_ZOOM = 4;
+  canvas.width = SIZE;
+  canvas.height = SIZE;
+
+  let srcCanvas = null;      // 축소 보관한 원본
+  let coverScale = 1;        // 프레임을 꽉 채우는 배율
+  let minZoom = 1;           // 사진 전체가 보이는 최소 배율(cover 대비)
+  let zoom = 1, offX = 0, offY = 0;
+  let rafId = 0;
+  let showGuides = false;   // 사진을 만지는 동안만 센터 표시 (저장 이미지에는 안 들어감)
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function curScale() { return coverScale * zoom; }
+
+  // 사진이 프레임보다 크면 빈틈이 안 생기게, 작으면 프레임 밖으로 안 나가게 제한
+  function offsetLimits() {
+    const dw = srcCanvas.width * curScale();
+    const dh = srcCanvas.height * curScale();
+    return { mx: Math.abs(dw - AREA_W) / 2, my: Math.abs(dh - AREA_H) / 2 };
+  }
+  function clampOffset() {
+    const { mx, my } = offsetLimits();
+    offX = clamp(offX, -mx, mx);
+    offY = clamp(offY, -my, my);
+  }
+
+  // cx, cy: 프레임 중심 기준 확대 기준점 (캔버스 px)
+  function setZoom(newZoom, cx = 0, cy = 0) {
+    if (!srcCanvas) return;
+    newZoom = clamp(newZoom, minZoom, MAX_ZOOM);
+    const ratio = newZoom / zoom;
+    offX = cx - (cx - offX) * ratio;
+    offY = cy - (cy - offY) * ratio;
+    zoom = newZoom;
+    clampOffset();
+    zoomSlider.value = zoom;
+    requestRender();
+  }
+
+  function fillView() {   // 꽉 채우기 (세로 사진은 위쪽을 조금 더 보여줌)
+    zoom = 1; offX = 0; offY = 0;
+    const my = Math.abs(srcCanvas.height * curScale() - AREA_H) / 2;
+    offY = my * 0.7;
+    clampOffset();
+    zoomSlider.value = zoom;
+    requestRender();
+  }
+
+  function fitAllView() { // 사진 전체 보이기
+    zoom = minZoom; offX = 0; offY = 0;
+    zoomSlider.value = zoom;
+    requestRender();
+  }
+
+  function handleFileSelect(file) {
+    if (!file) return;
+    currentImageFile = file;
+
+    let originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+    let extractedName = originalName.split('_')[0];
+
+    if (extractedName && extractedName !== "미지정" && extractedName.length < 15) {
+      nameInput.value = extractedName.replace(/[\s님]+/g, '').trim();
+    }
+
+    capturedDate = new Date(file.lastModified || Date.now());
+    EXIF.getData(file, function() {
+      const dateTimeOriginal = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime");
+      if (dateTimeOriginal) {
+        const parts = dateTimeOriginal.split(/[:\s]/);
+        capturedDate = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]);
+        requestRender();
+      }
+    });
+
+    loadPhoto(file);
+  }
+
+  function loadPhoto(file) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = async function() {
+      await ensureFontLoaded();
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const k = Math.min(1, MAX_SRC / Math.max(iw, ih));
+      const w = Math.round(iw * k), h = Math.round(ih * k);
+
+      srcCanvas = document.createElement('canvas');
+      srcCanvas.width = w;
+      srcCanvas.height = h;
+      const sctx = srcCanvas.getContext('2d');
+      sctx.imageSmoothingQuality = 'high';
+      sctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+
+      coverScale = Math.max(AREA_W / w, AREA_H / h);
+      const containScale = Math.min(AREA_W / w, AREA_H / h);
+      minZoom = Math.min(1, containScale / coverScale);
+      zoomSlider.min = minZoom.toFixed(3);
+      zoomSlider.max = MAX_ZOOM;
+
+      previewBox.style.display = 'block';
+      adjustPanel.style.display = 'flex';
+      saveBtn.style.display = 'block';
+      fillView();
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(url);
+      alert('사진을 불러오지 못했어요. 다른 사진으로 다시 시도해 주세요.');
+    };
+    img.src = url;
+  }
+
+  function requestRender() {
+    if (!srcCanvas || rafId) return;
+    rafId = requestAnimationFrame(() => { rafId = 0; renderFrame(); });
+  }
+
+  function renderFrame() {
+    if (!srcCanvas) return;
+    const rawName = nameInput.value.trim() || "김혜영";
+    const currentName = formatNameWithNim(rawName);
+    const currentMessage = messageInput.value.trim() || "늘 행복하시고 건강하세요!";
+    drawFilmStrip(currentName, currentMessage, currentFilter, currentAlign);
+  }
+
+  function updatePreview() { requestRender(); }
+
+  // ===== 드래그(이동) / 핀치(확대·축소) / 휠 =====
+  const pointers = new Map();
+  let lastDist = 0, lastMid = null;
+  let rawX = 0, rawY = 0;      // 자석 적용 전, 손가락을 따라가는 실제 위치
+  const SNAP_DIST = 14;        // 중앙에서 이 거리(캔버스 px) 안이면 딱 붙음
+
+  function toCanvasXY(e) {
+    const r = canvas.getBoundingClientRect();
+    const k = SIZE / r.width;
+    return { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k, k: k };
+  }
+  function pinchInfo() {
+    const pts = [...pointers.values()];
+    const dx = pts[0].x - pts[1].x, dy = pts[0].y - pts[1].y;
+    return { dist: Math.hypot(dx, dy), mid: { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 } };
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!srcCanvas) return;
+    canvas.setPointerCapture(e.pointerId);
+    const p = toCanvasXY(e);
+    pointers.set(e.pointerId, { x: p.x, y: p.y });
+    if (pointers.size === 1) { rawX = offX; rawY = offY; }
+    if (pointers.size === 2) { const info = pinchInfo(); lastDist = info.dist; lastMid = info.mid; }
+    canvas.style.cursor = 'grabbing';
+    showGuides = true;
+    requestRender();
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!pointers.has(e.pointerId) || !srcCanvas) return;
+    const p = toCanvasXY(e);
+    const prev = pointers.get(e.pointerId);
+    if (pointers.size === 1) {
+      const lim = offsetLimits();
+      rawX = clamp(rawX + (p.x - prev.x), -lim.mx, lim.mx);
+      rawY = clamp(rawY + (p.y - prev.y), -lim.my, lim.my);
+      // 가운데 근처에서는 자석처럼 0에 붙음 (손가락은 계속 따라가므로 더 움직이면 떨어짐)
+      offX = Math.abs(rawX) <= SNAP_DIST ? 0 : rawX;
+      offY = Math.abs(rawY) <= SNAP_DIST ? 0 : rawY;
+      pointers.set(e.pointerId, { x: p.x, y: p.y });
+      requestRender();
+    } else if (pointers.size === 2) {
+      pointers.set(e.pointerId, { x: p.x, y: p.y });
+      const info = pinchInfo();
+      offX += info.mid.x - lastMid.x;
+      offY += info.mid.y - lastMid.y;
+      const cx = info.mid.x - SIZE / 2, cy = info.mid.y - (AREA_Y + AREA_H / 2);
+      if (lastDist > 0) setZoom(zoom * (info.dist / lastDist), cx, cy);
+      else { clampOffset(); requestRender(); }
+      lastDist = info.dist; lastMid = info.mid;
+    }
+  });
+
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size === 1) {          // 핀치 후 남은 손가락으로 이어서 이동
+      rawX = offX; rawY = offY;
+      lastMid = null; lastDist = 0;
+    }
+    if (pointers.size === 0) {
+      canvas.style.cursor = 'grab';
+      showGuides = false;
+      requestRender();
+    }
+  }
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+
+  canvas.addEventListener('wheel', (e) => {
+    if (!srcCanvas) return;
+    e.preventDefault();
+    const p = toCanvasXY(e);
+    setZoom(zoom * (e.deltaY < 0 ? 1.08 : 1 / 1.08), p.x - SIZE / 2, p.y - (AREA_Y + AREA_H / 2));
+  }, { passive: false });
+
+  zoomSlider.addEventListener('input', () => setZoom(parseFloat(zoomSlider.value)));
+  document.getElementById('fitAllBtn').addEventListener('click', fitAllView);
+  document.getElementById('fillBtn').addEventListener('click', fillView);
+
+  cameraInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+  galleryInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+
+  nameInput.addEventListener('input', function() {
+    if (currentImageFile) updatePreview();
+  });
+
+  messageInput.addEventListener('input', function() {
+    if (currentImageFile) updatePreview();
+  });
+
+  function getFormattedFileNameDate(dateObj) {
+    const now = dateObj || new Date();
+    const MM = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const yy = String(now.getFullYear()).slice(-2);
+    
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${MM}${dd}${yy}_${hours}${minutes}${ampm}`;
+  }
+
+  function getFilmStripDate(dateObj) {
+    const now = dateObj || new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${month}/${day}/${year} ${hours}:${minutes}${ampm}`;
+  }
+
+  // ✨ 아이폰 사파리 완벽 호환 필터 알고리즘 (정확한 사진 영역 좌표 적용)
+  // ctx.filter는 사파리에서 무시되므로 픽셀 데이터를 직접 조작합니다.
+  const FILTER_PRESETS = {
+    1: { contrast: 1.08, saturation: 1.15, brightness: 10, r: 1.12, g: 1.02, b: 0.82, fade: 0,  sepia: 0,    vignette: 0.15 }, // 따뜻함
+    2: { contrast: 1.25, saturation: 0.80, brightness: -5, r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0,    vignette: 0.35, teal: true }, // 시네마
+    3: { contrast: 0.92, saturation: 0.90, brightness: 5,  r: 1.08, g: 1.00, b: 0.85, fade: 30, sepia: 0.75, vignette: 0.45 }, // 빈티지
+    4: { contrast: 0.85, saturation: 0.85, brightness: 28, r: 1.03, g: 1.00, b: 1.02, fade: 15, sepia: 0,    vignette: 0 },    // 소프트
+    5: { contrast: 1.20, saturation: 0.70, brightness: 0,  r: 1.10, g: 1.04, b: 0.80, fade: 40, sepia: 0.45, vignette: 0.5 }   // 로그레트로
+  };
+
+  function applyPixelFilter(ctx, startX, startY, width, height, filterNum) {
+    const p = FILTER_PRESETS[filterNum];
+    if (!p) return;
+
+    const imgData = ctx.getImageData(startX, startY, width, height);
+    const data = imgData.data;
+    const clamp = (v) => v < 0 ? 0 : (v > 255 ? 255 : v);
+
+    for (let i = 0; i < data.length; i += 4) {
+      let r = data[i];
+      let g = data[i + 1];
+      let b = data[i + 2];
+
+      // 세피아 혼합
+      if (p.sepia) {
+        const sr = r * 0.393 + g * 0.769 + b * 0.189;
+        const sg = r * 0.349 + g * 0.686 + b * 0.168;
+        const sb = r * 0.272 + g * 0.534 + b * 0.131;
+        r += (sr - r) * p.sepia;
+        g += (sg - g) * p.sepia;
+        b += (sb - b) * p.sepia;
+      }
+
+      // 채도
+      const lum = r * 0.299 + g * 0.587 + b * 0.114;
+      r = lum + (r - lum) * p.saturation;
+      g = lum + (g - lum) * p.saturation;
+      b = lum + (b - lum) * p.saturation;
+
+      // 대비 및 밝기
+      r = (r - 128) * p.contrast + 128 + p.brightness;
+      g = (g - 128) * p.contrast + 128 + p.brightness;
+      b = (b - 128) * p.contrast + 128 + p.brightness;
+
+      // 색온도
+      r *= p.r;
+      g *= p.g;
+      b *= p.b;
+
+      // 시네마: 어두운 곳은 청록, 밝은 곳은 주황
+      if (p.teal) {
+        const t = lum / 255;
+        r += (t - 0.5) * 40;
+        g += (0.5 - t) * 10;
+        b += (0.5 - t) * 45;
+      }
+
+      // 빛바랜 느낌 (검정 들뜸)
+      if (p.fade) {
+        r = p.fade + r * (1 - p.fade / 255);
+        g = p.fade + g * (1 - p.fade / 255);
+        b = p.fade + b * (1 - p.fade / 255);
+      }
+
+      data[i]     = clamp(r);
+      data[i + 1] = clamp(g);
+      data[i + 2] = clamp(b);
+    }
+    ctx.putImageData(imgData, startX, startY);
+
+    // 비네팅 (가장자리 어둡게)
+    if (p.vignette) {
+      const cx = startX + width / 2;
+      const cy = startY + height / 2;
+      const grad = ctx.createRadialGradient(cx, cy, Math.min(width, height) * 0.35, cx, cy, Math.max(width, height) * 0.7);
+      grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      grad.addColorStop(1, `rgba(0, 0, 0, ${p.vignette})`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(startX, startY, width, height);
+    }
+  }
+
+  function drawFilmPerforations(width, height, dateStr) {
+    ctx.fillStyle = '#111113'; 
+    ctx.fillRect(0, 0, width, 75);           
+    ctx.fillRect(0, height - 75, width, 75); 
+
+    ctx.fillStyle = '#1c1c1e';
+    const holeWidth = 42;
+    const holeHeight = 45;
+    const holeYTop = 15;
+    const holeYBottom = height - 60;
+    const gap = 68;
+
+    for (let x = 25; x < width - 30; x += gap) {
+      ctx.beginPath();
+      ctx.roundRect(x, holeYTop, holeWidth, holeHeight, 6);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.roundRect(x, holeYBottom, holeWidth, holeHeight, 6);
+      ctx.fill();
+    }
+
+    // 상단 "GOD LOVES YOU" 각인
+    ctx.fillStyle = '#8e8e93';
+    ctx.font = 'bold 22px monospace';
+    ctx.fillText('GOD LOVES YOU', 35, 52);
+
+    // 하단 날짜 각인
+    ctx.fillStyle = '#8e8e93'; 
+    ctx.font = 'bold 24px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(dateStr, width - 40, height - 28);
+    ctx.textAlign = 'left'; 
+  }
+
+  function drawFilmStrip(nameText, messageText, filterNum, alignMode) {
+    ctx.fillStyle = '#1c1c1e';
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // 사진을 프레임 안에 배치 (프레임 밖은 잘라냄, 남는 곳은 검정)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(AREA_X, AREA_Y, AREA_W, AREA_H);
+    ctx.clip();
+    ctx.fillStyle = '#0b0b0c';
+    ctx.fillRect(AREA_X, AREA_Y, AREA_W, AREA_H);
+
+    const s = curScale();
+    const dw = srcCanvas.width * s;
+    const dh = srcCanvas.height * s;
+    const dx = AREA_X + (AREA_W - dw) / 2 + offX;
+    const dy = AREA_Y + (AREA_H - dh) / 2 + offY;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(srcCanvas, 0, 0, srcCanvas.width, srcCanvas.height, dx, dy, dw, dh);
+    ctx.restore();
+
+    applyPixelFilter(ctx, AREA_X, AREA_Y, AREA_W, AREA_H, filterNum);
+
+    if (showText) {
+    // 하단 메타 카드 박스
+    const cardX = AREA_X;
+    const cardY = AREA_Y + AREA_H + 12;
+    const cardWidth = AREA_W;
+    const cardHeight = 230;
+    const cornerRadius = 16;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardWidth, cardHeight, cornerRadius);
+    ctx.fill();
+
+    let textX = cardX + 45;
+    if (alignMode === 'center') {
+      textX = cardX + (cardWidth / 2);
+    } else if (alignMode === 'right') {
+      textX = cardX + cardWidth - 45;
+    }
+
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = alignMode;
+    // 카드 폭을 넘으면 글자 크기를 자동으로 줄여서 한 줄에 맞춤
+    const maxTextW = cardWidth - 90;
+    const fitFont = (text, startPx = 65, minPx = 24) => {
+      let px = startPx;
+      ctx.font = `${px}px "NanumSeongSirCe", cursive`;
+      const w = ctx.measureText(text).width;
+      if (w > maxTextW) {
+        px = Math.max(minPx, Math.floor(startPx * maxTextW / w));
+        ctx.font = `${px}px "NanumSeongSirCe", cursive`;
+        while (px > minPx && ctx.measureText(text).width > maxTextW) {
+          px -= 1;
+          ctx.font = `${px}px "NanumSeongSirCe", cursive`;
+        }
+      }
+    };
+    fitFont(nameText);
+    ctx.fillText(nameText, textX, cardY + 75);
+    fitFont(messageText);
+    ctx.fillText(messageText, textX, cardY + 165);
+    ctx.textAlign = 'left';
+    }
+
+    drawFilmPerforations(SIZE, SIZE, getFilmStripDate(capturedDate || new Date()));
+
+    // 이동 중 센터 표시 (프레임 중앙 십자선 + 사진 중심점)
+    if (showGuides) {
+      const cx = AREA_X + AREA_W / 2, cy = AREA_Y + AREA_H / 2;
+      const vOk = Math.abs(offX) <= 4, hOk = Math.abs(offY) <= 4;
+      const drawLine = (x1, y1, x2, y2, ok) => {
+        ctx.setLineDash([18, 12]);
+        ctx.lineWidth = 7;
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = ok ? '#34c759' : 'rgba(255, 255, 255, 0.85)';
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      };
+      ctx.save();
+      drawLine(cx, AREA_Y, cx, AREA_Y + AREA_H, vOk);
+      drawLine(AREA_X, cy, AREA_X + AREA_W, cy, hOk);
+      ctx.setLineDash([]);
+      // 사진의 중심점
+      const px = dx + dw / 2, py = dy + dh / 2;
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = (vOk && hOk) ? '#34c759' : '#ffd60a';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.beginPath(); ctx.arc(px, py, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  saveBtn.addEventListener('click', async function() {
+    if (!srcCanvas) return;
+
+    let rawName = nameInput.value.trim() || "미지정";
+    let cleanFileBase = rawName.replace(/[\s님]+/g, '_').replace(/^_|_$/g, '');
+    let fileNames = cleanFileBase ? cleanFileBase : "미지정";
+
+    const targetDate = capturedDate || new Date();
+    const fileDateStr = getFormattedFileNameDate(targetDate);
+
+    await ensureFontLoaded();
+    showGuides = false;
+    renderFrame();
+    const filmBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+
+    const fileName = `${fileNames}_${fileDateStr}.jpg`;
+    const file = new File([filmBlob], fileName, { type: 'image/jpeg' });
+    const currentName = formatNameWithNim(rawName);
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: '화초전도 사진',
+          text: `${currentName}의 사진입니다.`
+        });
+        return;
+      } catch (error) {
+        if (error.name !== 'AbortError') console.log('공유 취소', error);
+      }
+    }
+
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(filmBlob);
+    downloadLink.download = fileName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+
+    alert(`'${fileName}' 저장 완료!`);
+
+    nameInput.value = '';
+    messageInput.value = '늘 행복하시고 건강하세요!';
+    updateCharCount();
+    renderPhrases();
+    previewBox.style.display = 'none';
+    adjustPanel.style.display = 'none';
+    saveBtn.style.display = 'none';
+    cameraInput.value = '';
+    galleryInput.value = '';
+    capturedDate = null;
+    srcCanvas = null;
+    currentImageFile = null;
+  });
+
+  // ===== 자주 쓰는 문구 저장/선택 =====
+  const PHRASE_KEY = 'hwachoPhrases';
+  const DEFAULT_PHRASES = [
+    '늘 행복하시고 건강하세요!',
+    '하나님은 당신을 사랑하세요',
+    '주님의 평안이 함께하시길 기도합니다',
+    '항상 응원하고 기도합니다'
+  ];
+  const phraseList = document.getElementById('phraseList');
+  const savePhraseBtn = document.getElementById('savePhraseBtn');
+
+  function loadPhrases() {
+    try {
+      const raw = localStorage.getItem(PHRASE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr.map(t => t === '하나님이 당신을 사랑하십니다' ? '하나님은 당신을 사랑하세요' : t);
+      }
+    } catch (e) {}
+    return DEFAULT_PHRASES.slice();
+  }
+  function storePhrases(arr) {
+    try { localStorage.setItem(PHRASE_KEY, JSON.stringify(arr)); } catch (e) {}
+  }
+
+  function renderPhrases() {
+    const phrases = loadPhrases();
+    const current = messageInput.value.trim();
+    phraseList.innerHTML = '';
+    phrases.forEach((text, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'phrase-chip' + (text === current ? ' active' : '');
+
+      const pick = document.createElement('button');
+      pick.type = 'button';
+      pick.className = 'phrase-text';
+      pick.textContent = text;
+      pick.addEventListener('click', () => {
+        messageInput.value = text;
+        messageInput.dispatchEvent(new Event('input'));
+      });
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'phrase-del';
+      del.textContent = '✕';
+      del.setAttribute('aria-label', '문구 삭제');
+      del.addEventListener('click', () => {
+        if (!confirm(`"${text}" 문구를 삭제할까요?`)) return;
+        const arr = loadPhrases();
+        arr.splice(idx, 1);
+        storePhrases(arr);
+        renderPhrases();
+      });
+
+      chip.appendChild(pick);
+      chip.appendChild(del);
+      phraseList.appendChild(chip);
+    });
+  }
+
+  savePhraseBtn.addEventListener('click', () => {
+    const text = messageInput.value.trim();
+    if (!text) { alert('저장할 문구를 먼저 입력해 주세요.'); return; }
+    const arr = loadPhrases();
+    if (arr.includes(text)) { alert('이미 저장된 문구예요.'); return; }
+    arr.push(text);
+    storePhrases(arr);
+    renderPhrases();
+  });
+
+  messageInput.addEventListener('input', renderPhrases);
+  renderPhrases();
+
+  // ===== 문구 글자 수 표시 =====
+  const MAX_MESSAGE_CHARS = 16;   // 이 글자 수까지는 기본 크기로 표시 (넘으면 자동으로 작아짐)
+  const charCount = document.getElementById('charCount');
+
+  function updateCharCount() {
+    const len = [...messageInput.value].length;
+    const left = MAX_MESSAGE_CHARS - len;
+    if (left >= 0) {
+      charCount.textContent = `${left}자 남음 (${len}/${MAX_MESSAGE_CHARS})`;
+      charCount.classList.remove('over');
+    } else {
+      charCount.textContent = `${-left}자 초과 (${len}/${MAX_MESSAGE_CHARS}) · 글자가 작아져요`;
+      charCount.classList.add('over');
+    }
+  }
+  messageInput.addEventListener('input', updateCharCount);
+  updateCharCount();
+
+  // ===== 하단 문구 넣기 / 안함 =====
+  function setShowText(on) {
+    showText = on;
+    document.querySelectorAll('.text-btn').forEach((btn, idx) => {
+      btn.classList.toggle('active', (idx === 0) === on);
+    });
+    document.getElementById('messageGroup').style.display = on ? '' : 'none';
+    document.getElementById('alignSection').style.display = on ? 'flex' : 'none';
+
+    AREA_H = on ? AREA_H_TEXT : AREA_H_FULL;
+    if (!srcCanvas) return;
+
+    // 사진의 실제 크기는 유지한 채 새 영역에 맞게 다시 계산
+    const absScale = coverScale * zoom;
+    coverScale = Math.max(AREA_W / srcCanvas.width, AREA_H / srcCanvas.height);
+    const containScale = Math.min(AREA_W / srcCanvas.width, AREA_H / srcCanvas.height);
+    minZoom = Math.min(1, containScale / coverScale);
+    zoomSlider.min = minZoom.toFixed(3);
+    zoom = clamp(absScale / coverScale, minZoom, MAX_ZOOM);
+    zoomSlider.value = zoom;
+    clampOffset();
+    requestRender();
+  }
+</script>
+
+</body>
+</html>
