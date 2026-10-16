@@ -6,7 +6,7 @@
   <title>화초전도 사진찍기</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
-  <!-- 링크 공유(카카오톡·문자 등) 미리보기 -->
+  <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="화초전도 사진찍기">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
@@ -22,20 +22,21 @@
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    body { padding: 20px; background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; }
+    body { padding: 16px; background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
     
-    h2 { text-align: center; color: #1c1c1e !important; margin: 10px 0 5px 0; font-size: 24px; font-weight: bold; }
+    h2 { text-align: center; color: #1c1c1e !important; margin: 5px 0; font-size: 22px; font-weight: bold; }
     
     .input-group { display: flex; flex-direction: column; gap: 4px; }
     .input-label { font-size: 13px; font-weight: bold; color: #3a3a3c; }
 
+    /* 1. 입력창 높이를 슬림하게 조절 */
     input[type="text"] { 
       width: 100%; 
-      padding: 14px; 
-      font-size: 16px; 
+      padding: 9px 12px; 
+      font-size: 15px; 
       border: 1.5px solid #007aff; 
-      border-radius: 12px; 
+      border-radius: 10px; 
       outline: none; 
       background-color: #ffffff !important; 
       color: #000000 !important; 
@@ -46,21 +47,44 @@
       -webkit-text-fill-color: #8e8e93 !important;
     }
 
-    /* 입력창 나눔손글씨 성실체 적용 */
     #nameInput, #messageInput {
       font-family: 'NanumSeongSirCe', cursive !important;
-      font-size: 26px !important;
+      font-size: 22px !important;
       letter-spacing: 0.5px;
     }
 
+    /* 2. 문구 드롭다운 스타일 */
+    .dropdown-row { display: flex; gap: 6px; }
+    .phrase-select {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1.5px solid #c7c7cc;
+      border-radius: 8px;
+      background-color: #ffffff;
+      color: #1c1c1e;
+      outline: none;
+    }
+    .phrase-mini-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      border: 1.5px solid #007aff;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #007aff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
     /* 공통 토글 버튼 그룹 */
-    .option-label { font-size: 13px; font-weight: bold; color: #3a3a3c; }
-    .option-group { display: flex; gap: 4px; width: 100%; flex-wrap: wrap; }
+    .option-label { font-size: 13px; font-weight: bold; color: #3a3a3c; margin-top: 2px; }
+    .option-group { display: flex; gap: 4px; width: 100%; }
     .option-btn { 
       flex: 1; 
-      min-width: 70px;
-      padding: 10px 0; 
-      font-size: 13px; 
+      padding: 8px 0; 
+      font-size: 12.5px; 
       font-weight: bold; 
       border: 1.5px solid #c7c7cc; 
       border-radius: 8px; 
@@ -76,74 +100,80 @@
       border-color: #007aff; 
     }
 
-    /* 이모티콘 선택 바 */
-    .emoji-bar { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; -webkit-overflow-scrolling: touch; }
-    .emoji-btn {
-      background: #ffffff;
-      border: 1px solid #d1d1d6;
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 18px;
-      cursor: pointer;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .emoji-btn:active { background-color: #e5e5ea; }
-
-    .btn { 
-      width: 100%; 
-      padding: 15px; 
-      font-size: 17px; 
+    /* 4. 사진찍기 & 앨범 버튼 5:5 나란히 배치 */
+    .btn-row { display: flex; gap: 8px; width: 100%; margin: 2px 0; }
+    .btn-half { 
+      flex: 1;
+      padding: 13px 0; 
+      font-size: 15px; 
       font-weight: bold; 
       color: #ffffff !important; 
       -webkit-text-fill-color: #ffffff !important;
       border: none; 
-      border-radius: 12px; 
+      border-radius: 10px; 
       cursor: pointer; 
       text-align: center; 
-      display: block; 
       text-decoration: none;
     }
     .btn-camera { background-color: #007aff; }
     .btn-gallery { background-color: #5856d6; }
-    .btn-save { background-color: #34c759; display: none; margin-top: 5px; }
-
-    /* 1:1 정사각형 미리보기 박스 */
-    .preview-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; display: none; background: #e5e5ea; text-align: center; margin-top: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    #polaroidCanvas { width: 100%; height: 100%; display: block; touch-action: none; -webkit-user-select: none; user-select: none; cursor: grab; }
-    .preview-box { touch-action: none; }
-
-    /* 글자 크기 조절 패널 (저장될 사진 바로 아래 위치) */
-    .fontsize-panel { display: none; flex-direction: column; gap: 8px; background: #ffffff; border-radius: 12px; padding: 12px; }
-    .fontsize-header { display: flex; justify-content: space-between; align-items: center; }
-    .fontsize-btns { display: flex; gap: 4px; }
-    .size-btn { padding: 4px 10px; font-size: 12px; font-weight: bold; border: 1.5px solid #c7c7cc; border-radius: 6px; background: #ffffff; color: #3a3a3c; cursor: pointer; }
-    .size-btn.active { background: #007aff; color: #ffffff; border-color: #007aff; }
-
-    /* 사진 크기·위치 조절 패널 */
-    .adjust-panel { display: none; flex-direction: column; gap: 8px; background: #ffffff; border-radius: 12px; padding: 12px; }
-    .adjust-hint { font-size: 12px; color: #6c6c70; text-align: center; line-height: 1.4; }
-    .zoom-row { display: flex; align-items: center; gap: 8px; font-size: 18px; }
-    .zoom-row input[type="range"] { flex: 1; }
-    .adjust-btns { display: flex; gap: 6px; }
-    
     .file-input { display: none; }
 
-    /* 저장 문구 선택 */
+    /* 1:1 정사각형 미리보기 박스 */
+    .preview-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; display: none; background: #e5e5ea; text-align: center; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    #polaroidCanvas { width: 100%; height: 100%; display: block; touch-action: none; -webkit-user-select: none; user-select: none; cursor: grab; }
+
+    /* 글자 크기 조절 패널 */
+    .fontsize-panel { display: none; flex-direction: column; gap: 6px; background: #ffffff; border-radius: 10px; padding: 10px; }
+    .fontsize-header { display: flex; justify-content: space-between; align-items: center; }
+    .fontsize-btns { display: flex; gap: 4px; }
+    .size-btn { padding: 4px 8px; font-size: 11.5px; font-weight: bold; border: 1.5px solid #c7c7cc; border-radius: 6px; background: #ffffff; color: #3a3a3c; cursor: pointer; }
+    .size-btn.active { background: #007aff; color: #ffffff; border-color: #007aff; }
+    .zoom-row { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+    .zoom-row input[type="range"] { flex: 1; }
+
+    /* 3. 이모티콘 스티커 패널 (사진 아래 위치) */
+    .sticker-panel { display: none; flex-direction: column; gap: 6px; background: #ffffff; border-radius: 10px; padding: 10px; }
+    .emoji-bar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; -webkit-overflow-scrolling: touch; }
+    .emoji-btn {
+      background: #f2f2f7;
+      border: 1px solid #d1d1d6;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .emoji-btn:active { background-color: #e5e5ea; }
+    .sticker-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .del-sticker-btn { padding: 5px 10px; font-size: 11.5px; font-weight: bold; background: #ff3b30; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; }
+
+    /* 사진 크기·위치 조절 패널 */
+    .adjust-panel { display: none; flex-direction: column; gap: 6px; background: #ffffff; border-radius: 10px; padding: 10px; }
+    .adjust-hint { font-size: 11.5px; color: #6c6c70; text-align: center; line-height: 1.3; }
+    .adjust-btns { display: flex; gap: 6px; }
+
+    .btn-save { 
+      width: 100%; 
+      padding: 14px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      color: #ffffff !important; 
+      -webkit-text-fill-color: #ffffff !important;
+      border: none; 
+      border-radius: 10px; 
+      background-color: #34c759; 
+      display: none; 
+      margin-top: 4px;
+      cursor: pointer;
+    }
+
     .label-row { display: flex; align-items: center; justify-content: space-between; }
-    .seg-group { display: flex; border: 1.5px solid #007aff; border-radius: 8px; overflow: hidden; }
-    .seg-btn { padding: 6px 14px; font-size: 13px; font-weight: bold; border: none; background: #ffffff; color: #007aff; cursor: pointer; }
+    .seg-group { display: flex; border: 1.5px solid #007aff; border-radius: 6px; overflow: hidden; }
+    .seg-btn { padding: 4px 10px; font-size: 12px; font-weight: bold; border: none; background: #ffffff; color: #007aff; cursor: pointer; }
     .seg-btn.active { background: #007aff; color: #ffffff; }
-    .char-count { font-size: 12px; text-align: right; color: #8e8e93; }
+    .char-count { font-size: 11.5px; text-align: right; color: #8e8e93; }
     .char-count.over { color: #ff3b30; font-weight: bold; }
-    .phrase-list { display: flex; flex-wrap: wrap; gap: 6px; }
-    .phrase-chip { display: inline-flex; align-items: center; background: #ffffff; border: 1.5px solid #c7c7cc; border-radius: 16px; overflow: hidden; max-width: 100%; }
-    .phrase-chip.active { border-color: #007aff; background: #e8f1ff; }
-    .phrase-chip .phrase-text { border: none; background: none; padding: 7px 4px 7px 12px; font-size: 13px; color: #1c1c1e; cursor: pointer; text-align: left; }
-    .phrase-chip .phrase-del { border: none; background: none; padding: 7px 10px 7px 4px; font-size: 14px; color: #8e8e93; cursor: pointer; }
-    .phrase-save-btn { align-self: flex-start; padding: 7px 12px; font-size: 13px; font-weight: bold; color: #007aff; background: #ffffff; border: 1.5px solid #007aff; border-radius: 16px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -151,11 +181,13 @@
 <div class="container">
   <h2>🌿 화초전도 사진찍기</h2>
 
+  <!-- 1. 높이를 줄인 대상자 이름 입력창 -->
   <div class="input-group">
     <label class="input-label">대상자 이름</label>
     <input type="text" id="nameInput" placeholder="이름 입력">
   </div>
 
+  <!-- 1 & 2. 문구 입력 및 드롭다운 선택 영역 -->
   <div class="input-group">
     <div class="label-row">
       <label class="input-label">문구</label>
@@ -167,43 +199,29 @@
     <div class="input-group" id="messageGroup">
       <input type="text" id="messageInput" value="늘 행복하시고 건강하세요!" placeholder="늘 행복하시고 건강하세요!">
       
-      <!-- 이모티콘 빠른 입력 바 -->
-      <div class="emoji-bar">
-        <button type="button" class="emoji-btn" onclick="insertEmoji('🙏')">🙏</button>
-        <button type="button" class="emoji-btn" onclick="insertEmoji('❤️')">❤️</button>
-        <button type="button" class="emoji-btn" onclick="insertEmoji('💖')">💖</button>
-        <button type="button" class="emoji-btn" onclick="insertEmoji('💕')">💕</button>
-        <button type="button" class="emoji-btn" onclick="insertEmoji('🌿')">🌿</button>
-        <button type="button" class="emoji-btn" onclick="insertEmoji('🌸')">🌸</button>
-        <button type="button" class="emoji-btn" onclick="insertEmoji('✨')">✨</button>
-        <button type="button" class="emoji-btn" onclick="insertEmoji('🕊️')">🕊️</button>
-        <button type="button" class="emoji-btn" onclick="insertEmoji('😊')">😊</button>
+      <!-- 문구 드롭박스 & 저장/삭제 -->
+      <div class="dropdown-row">
+        <select class="phrase-select" id="phraseSelect" onchange="onSelectPhrase(this.value)">
+          <option value="" disabled selected>📜 자주 쓰는 문구 선택하기</option>
+        </select>
+        <button type="button" class="phrase-mini-btn" id="savePhraseBtn">＋저장</button>
+        <button type="button" class="phrase-mini-btn" style="color:#ff3b30; border-color:#ff3b30;" id="delPhraseBtn">✕삭제</button>
       </div>
 
       <div class="char-count" id="charCount"></div>
-      <button type="button" class="phrase-save-btn" id="savePhraseBtn">＋ 현재 문구 저장</button>
-      <div class="phrase-list" id="phraseList"></div>
     </div>
   </div>
 
-  <!-- 사진 촬영 및 앨범 선택 버튼 -->
-  <label for="camera-input" class="btn btn-camera">📷 사진 찍기</label>
-  <input type="file" id="camera-input" class="file-input" accept="image/*" capture="environment">
+  <!-- 4. 사진찍기 및 앨범 선택 버튼 (5:5 같은 줄 배치) -->
+  <div class="btn-row">
+    <label for="camera-input" class="btn-half btn-camera">📷 사진 찍기</label>
+    <input type="file" id="camera-input" class="file-input" accept="image/*" capture="environment">
 
-  <label for="gallery-input" class="btn btn-gallery">🖼️ 앨범에서 사진 선택</label>
-  <input type="file" id="gallery-input" class="file-input" accept="image/*">
-
-  <!-- 텍스트 정렬 -->
-  <div id="alignSection" style="display:flex; flex-direction:column; gap:6px;">
-    <div class="option-label">📐 텍스트 정렬</div>
-    <div class="option-group">
-      <button type="button" class="option-btn align-btn" onclick="setTextAlign('left')">왼쪽 정렬</button>
-      <button type="button" class="option-btn align-btn active" onclick="setTextAlign('center')">가운데 정렬</button>
-      <button type="button" class="option-btn align-btn" onclick="setTextAlign('right')">오른쪽 정렬</button>
-    </div>
+    <label for="gallery-input" class="btn-half btn-gallery">🖼️ 앨범 선택</label>
+    <input type="file" id="gallery-input" class="file-input" accept="image/*">
   </div>
 
-  <!-- 프레임 스타일 선택 (폴라로이드, 필름, 골든, 한지배경) -->
+  <!-- 프레임 스타일 선택 (4종) -->
   <div class="option-label">🖼️ 프레임 스타일 선택</div>
   <div class="option-group">
     <button type="button" class="option-btn style-btn active" onclick="setFrameStyle('polaroid')">🤍 폴라로이드</button>
@@ -212,14 +230,13 @@
     <button type="button" class="option-btn style-btn" onclick="setFrameStyle('hanji')">🌸 한지배경</button>
   </div>
 
-  <!-- 필터 선택 영역 -->
-  <div class="option-label">🎨 필름 카메라 감성 필터 선택</div>
+  <!-- 6. 필터 선택 영역 (따뜻함, 시네마, 소프트, 비네팅 4종) -->
+  <div class="option-label">🎨 필름 감성 필터</div>
   <div class="option-group">
     <button type="button" class="option-btn filter-btn active" onclick="setFilter(1)">1.따뜻함</button>
     <button type="button" class="option-btn filter-btn" onclick="setFilter(2)">2.시네마</button>
-    <button type="button" class="option-btn filter-btn" onclick="setFilter(3)">3.빈티지</button>
-    <button type="button" class="option-btn filter-btn" onclick="setFilter(4)">4.소프트</button>
-    <button type="button" class="option-btn filter-btn" onclick="setFilter(5)">5.레트로</button>
+    <button type="button" class="option-btn filter-btn" onclick="setFilter(3)">3.소프트</button>
+    <button type="button" class="option-btn filter-btn" onclick="setFilter(4)">4.비네팅</button>
   </div>
 
   <!-- 1:1 비율 미리보기 (저장될 사진) -->
@@ -227,10 +244,10 @@
     <canvas id="polaroidCanvas"></canvas>
   </div>
 
-  <!-- 사진 바로 아래 위치: 하단 글자 크기 조절 패널 -->
+  <!-- 글자 크기 조절 패널 -->
   <div class="fontsize-panel" id="fontSizePanel">
     <div class="fontsize-header">
-      <span class="option-label">🔤 글자 크기 조절</span>
+      <span class="option-label">🔤 문구 글자 크기</span>
       <div class="fontsize-btns">
         <button type="button" class="size-btn" onclick="setTextScalePreset(0.8)">작게</button>
         <button type="button" class="size-btn active" onclick="setTextScalePreset(1.0)">보통</button>
@@ -238,15 +255,36 @@
       </div>
     </div>
     <div class="zoom-row">
-      <span style="font-size:13px; font-weight:bold; color:#8e8e93;">가</span>
+      <span style="font-size:12px; font-weight:bold; color:#8e8e93;">가</span>
       <input type="range" id="fontScaleSlider" min="0.7" max="1.3" step="0.05" value="1.0">
-      <span style="font-size:18px; font-weight:bold; color:#1c1c1e;">가</span>
+      <span style="font-size:16px; font-weight:bold; color:#1c1c1e;">가</span>
+    </div>
+  </div>
+
+  <!-- 3. 사진 아래 배치된 이모티콘 스티커 패널 (터치로 위치/크기 조절) -->
+  <div class="sticker-panel" id="stickerPanel">
+    <div class="option-label">✨ 스티커 이모티콘 추가 (사진 위에서 드래그 이동)</div>
+    <div class="emoji-bar">
+      <button type="button" class="emoji-btn" onclick="addSticker('🙏')">🙏</button>
+      <button type="button" class="emoji-btn" onclick="addSticker('❤️')">❤️</button>
+      <button type="button" class="emoji-btn" onclick="addSticker('💖')">💖</button>
+      <button type="button" class="emoji-btn" onclick="addSticker('💕')">💕</button>
+      <button type="button" class="emoji-btn" onclick="addSticker('🌿')">🌿</button>
+      <button type="button" class="emoji-btn" onclick="addSticker('🌸')">🌸</button>
+      <button type="button" class="emoji-btn" onclick="addSticker('✨')">✨</button>
+      <button type="button" class="emoji-btn" onclick="addSticker('🕊️')">🕊️</button>
+      <button type="button" class="emoji-btn" onclick="addSticker('😊')">😊</button>
+    </div>
+    <div class="sticker-tools" id="stickerTools" style="display:none; margin-top:4px;">
+      <span style="font-size:12px; color:#6c6c70;">선택된 스티커 크기:</span>
+      <input type="range" id="stickerSizeSlider" min="30" max="140" value="65" style="flex:1;">
+      <button type="button" class="del-sticker-btn" onclick="deleteSelectedSticker()">스티커 삭제</button>
     </div>
   </div>
 
   <!-- 사진 크기·위치 조절 -->
   <div class="adjust-panel" id="adjustPanel">
-    <div class="adjust-hint">☝️ 사진을 드래그하면 위치 이동<br>✌️ 두 손가락으로 확대·축소 (또는 아래 슬라이더)</div>
+    <div class="adjust-hint">☝️ 사진을 드래그하면 이동 | ✌️ 두 손가락 핀치로 확대·축소</div>
     <div class="zoom-row">
       <span>➖</span>
       <input type="range" id="zoomSlider" min="0.3" max="4" step="0.01" value="1">
@@ -258,7 +296,7 @@
     </div>
   </div>
 
-  <button id="saveBtn" class="btn btn-save">💾 사진 저장 및 공유하기</button>
+  <button id="saveBtn" class="btn-save">💾 사진 저장 및 공유하기</button>
 </div>
 
 <script>
@@ -269,6 +307,9 @@
   const previewBox = document.getElementById('previewBox');
   const adjustPanel = document.getElementById('adjustPanel');
   const fontSizePanel = document.getElementById('fontSizePanel');
+  const stickerPanel = document.getElementById('stickerPanel');
+  const stickerTools = document.getElementById('stickerTools');
+  const stickerSizeSlider = document.getElementById('stickerSizeSlider');
   const fontScaleSlider = document.getElementById('fontScaleSlider');
   const zoomSlider = document.getElementById('zoomSlider');
   const saveBtn = document.getElementById('saveBtn');
@@ -276,21 +317,47 @@
   const ctx = canvas.getContext('2d');
 
   let currentImageFile = null;
+  let lastAutoName = '';
   let capturedDate = null;
   let currentFilter = 1;
-  let currentAlign = 'center';
   let currentFrameStyle = 'polaroid';
   let textScale = 1.0;
 
-  function insertEmoji(emoji) {
-    const start = messageInput.selectionStart ?? messageInput.value.length;
-    const end = messageInput.selectionEnd ?? messageInput.value.length;
-    const val = messageInput.value;
-    messageInput.value = val.substring(0, start) + emoji + val.substring(end);
-    messageInput.focus();
-    messageInput.setSelectionRange(start + emoji.length, start + emoji.length);
-    messageInput.dispatchEvent(new Event('input'));
+  // ===== 스티커 상태 관리 =====
+  let stickers = [];
+  let selectedStickerIdx = -1;
+  let isDraggingSticker = false;
+  let dragStickerOffset = { x: 0, y: 0 };
+
+  function addSticker(emoji) {
+    const newSticker = {
+      text: emoji,
+      x: SIZE / 2,
+      y: AREA_Y + AREA_H / 2,
+      size: 65
+    };
+    stickers.push(newSticker);
+    selectedStickerIdx = stickers.length - 1;
+    stickerSizeSlider.value = 65;
+    stickerTools.style.display = 'flex';
+    requestRender();
   }
+
+  function deleteSelectedSticker() {
+    if (selectedStickerIdx >= 0) {
+      stickers.splice(selectedStickerIdx, 1);
+      selectedStickerIdx = -1;
+      stickerTools.style.display = 'none';
+      requestRender();
+    }
+  }
+
+  stickerSizeSlider.addEventListener('input', () => {
+    if (selectedStickerIdx >= 0 && stickers[selectedStickerIdx]) {
+      stickers[selectedStickerIdx].size = parseInt(stickerSizeSlider.value);
+      requestRender();
+    }
+  });
 
   async function ensureFontLoaded() {
     try {
@@ -302,25 +369,9 @@
   }
 
   function formatNameWithNim(inputName) {
-    if (!inputName) return "김혜영 님";
+    if (!inputName) return "";
     let cleaned = inputName.replace(/[\s님]+/g, '').trim();
-    return cleaned ? cleaned + " 님" : "김혜영 님";
-  }
-
-  function setTextAlign(align) {
-    currentAlign = align;
-    const buttons = document.querySelectorAll('.align-btn');
-    buttons.forEach((btn) => {
-      if ((align === 'left' && btn.textContent.includes('왼쪽')) ||
-          (align === 'center' && btn.textContent.includes('가운데')) ||
-          (align === 'right' && btn.textContent.includes('오른쪽'))) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-
-    if (currentImageFile) updatePreview();
+    return cleaned ? cleaned + " 님" : "";
   }
 
   function setTextScalePreset(scale) {
@@ -359,17 +410,13 @@
     if (currentImageFile) updatePreview();
   }
 
+  // 6. 간소화된 4종 필터 선택
   function setFilter(filterNum) {
     currentFilter = filterNum;
     const buttons = document.querySelectorAll('.filter-btn');
     buttons.forEach((btn, idx) => {
-      if (idx + 1 === filterNum) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+      btn.classList.toggle('active', idx + 1 === filterNum);
     });
-
     if (currentImageFile) updatePreview();
   }
 
@@ -440,8 +487,14 @@
     let originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     let extractedName = originalName.split('_')[0];
 
-    if (extractedName && extractedName !== "미지정" && extractedName.length < 15) {
-      nameInput.value = extractedName.replace(/[\s님]+/g, '').trim();
+    // 파일명이 "한글이름_..." 형태일 때만 자동 입력 (IMG_1234 같은 카메라 파일명은 무시)
+    // 직접 입력한 이름은 덮어쓰지 않고, 직전에 자동 입력된 이름만 새 이름으로 교체
+    const cleanedName = extractedName.replace(/[\s님]+/g, '').trim();
+    const looksLikeName = /[가-힣]/.test(cleanedName) && cleanedName !== '미지정' && cleanedName.length < 15;
+    const currentTyped = nameInput.value.trim();
+    if (looksLikeName && (!currentTyped || currentTyped === lastAutoName)) {
+      nameInput.value = cleanedName;
+      lastAutoName = cleanedName;
     }
 
     capturedDate = new Date(file.lastModified || Date.now());
@@ -482,6 +535,7 @@
 
       previewBox.style.display = 'block';
       if (showText) fontSizePanel.style.display = 'flex';
+      stickerPanel.style.display = 'flex';
       adjustPanel.style.display = 'flex';
       saveBtn.style.display = 'block';
       fillView();
@@ -500,15 +554,14 @@
 
   function renderFrame() {
     if (!srcCanvas) return;
-    const rawName = nameInput.value.trim() || "김혜영";
-    const currentName = formatNameWithNim(rawName);
+    const currentName = formatNameWithNim(nameInput.value.trim());
     const currentMessage = messageInput.value.trim() || "늘 행복하시고 건강하세요!";
-    drawFilmStrip(currentName, currentMessage, currentFilter, currentAlign, currentFrameStyle);
+    drawFilmStrip(currentName, currentMessage, currentFilter, currentFrameStyle);
   }
 
   function updatePreview() { requestRender(); }
 
-  // 제스처 핸들링
+  // 제스처 & 스티커 드래그 핸들링
   const pointers = new Map();
   let lastDist = 0, lastMid = null;
   let rawX = 0, rawY = 0;
@@ -517,7 +570,7 @@
   function toCanvasXY(e) {
     const r = canvas.getBoundingClientRect();
     const k = SIZE / r.width;
-    return { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k, k: k };
+    return { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k };
   }
   function pinchInfo() {
     const pts = [...pointers.values()];
@@ -529,6 +582,31 @@
     if (!srcCanvas) return;
     canvas.setPointerCapture(e.pointerId);
     const p = toCanvasXY(e);
+
+    // 스티커 터치 여부 판별 (역순 탐색)
+    isDraggingSticker = false;
+    for (let i = stickers.length - 1; i >= 0; i--) {
+      const s = stickers[i];
+      const dist = Math.hypot(p.x - s.x, p.y - s.y);
+      if (dist <= s.size * 0.7) {
+        selectedStickerIdx = i;
+        isDraggingSticker = true;
+        dragStickerOffset.x = p.x - s.x;
+        dragStickerOffset.y = p.y - s.y;
+        stickerSizeSlider.value = s.size;
+        stickerTools.style.display = 'flex';
+        requestRender();
+        return;
+      }
+    }
+
+    // 빈 곳 클릭 시 스티커 선택 해제
+    if (selectedStickerIdx >= 0) {
+      selectedStickerIdx = -1;
+      stickerTools.style.display = 'none';
+      requestRender();
+    }
+
     pointers.set(e.pointerId, { x: p.x, y: p.y });
     if (pointers.size === 1) { rawX = offX; rawY = offY; }
     if (pointers.size === 2) { const info = pinchInfo(); lastDist = info.dist; lastMid = info.mid; }
@@ -538,8 +616,16 @@
   });
 
   canvas.addEventListener('pointermove', (e) => {
-    if (!pointers.has(e.pointerId) || !srcCanvas) return;
     const p = toCanvasXY(e);
+
+    if (isDraggingSticker && selectedStickerIdx >= 0) {
+      stickers[selectedStickerIdx].x = clamp(p.x - dragStickerOffset.x, 30, SIZE - 30);
+      stickers[selectedStickerIdx].y = clamp(p.y - dragStickerOffset.y, 30, SIZE - 30);
+      requestRender();
+      return;
+    }
+
+    if (!pointers.has(e.pointerId) || !srcCanvas) return;
     const prev = pointers.get(e.pointerId);
     if (pointers.size === 1) {
       const lim = offsetLimits();
@@ -562,6 +648,10 @@
   });
 
   function endPointer(e) {
+    if (isDraggingSticker) {
+      isDraggingSticker = false;
+      return;
+    }
     pointers.delete(e.pointerId);
     if (pointers.size === 1) {
       rawX = offX; rawY = offY;
@@ -625,12 +715,12 @@
     return `${month}/${day}/${year} ${hours}:${minutes}${ampm}`;
   }
 
+  // 6. 필터 프리셋 4종 (따뜻함, 시네마, 소프트, 비네팅)
   const FILTER_PRESETS = {
-    1: { contrast: 1.08, saturation: 1.15, brightness: 10, r: 1.12, g: 1.02, b: 0.82, fade: 0,  sepia: 0,    vignette: 0.15 },
-    2: { contrast: 1.25, saturation: 0.80, brightness: -5, r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0,    vignette: 0.35, teal: true },
-    3: { contrast: 0.92, saturation: 0.90, brightness: 5,  r: 1.08, g: 1.00, b: 0.85, fade: 30, sepia: 0.75, vignette: 0.45 },
-    4: { contrast: 0.85, saturation: 0.85, brightness: 28, r: 1.03, g: 1.00, b: 1.02, fade: 15, sepia: 0,    vignette: 0 },
-    5: { contrast: 1.20, saturation: 0.70, brightness: 0,  r: 1.10, g: 1.04, b: 0.80, fade: 40, sepia: 0.45, vignette: 0.5 }
+    1: { contrast: 1.08, saturation: 1.15, brightness: 10, r: 1.12, g: 1.02, b: 0.82, fade: 0,  sepia: 0, vignette: 0.15 }, // 따뜻함
+    2: { contrast: 1.25, saturation: 0.80, brightness: -5, r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0, vignette: 0.35, teal: true }, // 시네마
+    3: { contrast: 0.88, saturation: 0.88, brightness: 25, r: 1.03, g: 1.00, b: 1.02, fade: 15, sepia: 0, vignette: 0 }, // 소프트
+    4: { contrast: 1.05, saturation: 1.00, brightness: 0,  r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0, vignette: 0.65 }  // 비네팅 중심
   };
 
   function applyPixelFilter(ctx, startX, startY, width, height, filterNum) {
@@ -645,15 +735,6 @@
       let r = data[i];
       let g = data[i + 1];
       let b = data[i + 2];
-
-      if (p.sepia) {
-        const sr = r * 0.393 + g * 0.769 + b * 0.189;
-        const sg = r * 0.349 + g * 0.686 + b * 0.168;
-        const sb = r * 0.272 + g * 0.534 + b * 0.131;
-        r += (sr - r) * p.sepia;
-        g += (sg - g) * p.sepia;
-        b += (sb - b) * p.sepia;
-      }
 
       const lum = r * 0.299 + g * 0.587 + b * 0.114;
       r = lum + (r - lum) * p.saturation;
@@ -690,7 +771,7 @@
     if (p.vignette) {
       const cx = startX + width / 2;
       const cy = startY + height / 2;
-      const grad = ctx.createRadialGradient(cx, cy, Math.min(width, height) * 0.35, cx, cy, Math.max(width, height) * 0.7);
+      const grad = ctx.createRadialGradient(cx, cy, Math.min(width, height) * 0.32, cx, cy, Math.max(width, height) * 0.68);
       grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
       grad.addColorStop(1, `rgba(0, 0, 0, ${p.vignette})`);
       ctx.fillStyle = grad;
@@ -807,7 +888,7 @@
     ctx.bezierCurveTo(SIZE - 90, SIZE - 250, SIZE - 110, SIZE - 450, SIZE - 50, SIZE - 620);
     ctx.stroke();
 
-    const drawLeaf = (cx, cy, angle, len, w, color, addVein = true) => {
+    const drawLeaf = (cx, cy, angle, len, w, color) => {
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(angle);
@@ -817,14 +898,6 @@
       ctx.quadraticCurveTo(w, len * 0.5, 0, len);
       ctx.quadraticCurveTo(-w, len * 0.5, 0, 0);
       ctx.fill();
-      if (addVein) {
-        ctx.strokeStyle = 'rgba(60, 70, 45, 0.4)';
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(0, 4);
-        ctx.lineTo(0, len - 6);
-        ctx.stroke();
-      }
       ctx.restore();
     };
 
@@ -871,14 +944,6 @@
         ctx.bezierCurveTo(-38, 52, -28, 22, 0, 10);
         ctx.fill();
         ctx.stroke();
-
-        ctx.strokeStyle = 'rgba(215, 165, 130, 0.4)';
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(0, 16);
-        ctx.lineTo(0, 52);
-        ctx.stroke();
-
         ctx.restore();
       }
 
@@ -890,30 +955,11 @@
       ctx.beginPath();
       ctx.arc(0, 0, 16, 0, Math.PI * 2);
       ctx.fill();
-
-      ctx.fillStyle = '#6e3009';
-      for (let j = 0; j < 8; j++) {
-        const jAng = j * (Math.PI * 2 / 8);
-        ctx.beginPath();
-        ctx.arc(Math.cos(jAng) * 9, Math.sin(jAng) * 9, 2.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
       ctx.restore();
     };
 
     drawFlower(SIZE - 110, SIZE - 170, 1.35);
     drawFlower(SIZE - 65, SIZE - 280, 0.75);
-
-    const goldFlakes = [
-      [80, 120, 4.5], [140, 360, 3.5], [100, 700, 5], [200, 950, 4],
-      [SIZE - 200, 160, 4.5], [SIZE - 150, 300, 4], [SIZE - 240, 520, 4.5], [SIZE - 210, 740, 5]
-    ];
-    ctx.fillStyle = 'rgba(212, 165, 75, 0.55)';
-    goldFlakes.forEach(([x, y, r]) => {
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    });
 
     ctx.strokeStyle = 'rgba(175, 158, 138, 0.5)';
     ctx.lineWidth = 2.5;
@@ -921,7 +967,6 @@
     ctx.restore();
   }
 
-  // 필름 타공 (텍스트는 외부 통합 렌더러에서 단일 처리)
   function drawFilmPerforations(width, height) {
     ctx.fillStyle = '#111113'; 
     ctx.fillRect(0, 0, width, 75);           
@@ -965,7 +1010,7 @@
     ctx.restore();
   }
 
-  function drawFilmStrip(nameText, messageText, filterNum, alignMode, styleKey) {
+  function drawFilmStrip(nameText, messageText, filterNum, styleKey) {
     // 1. 프레임 배경
     if (styleKey === 'golden') {
       drawGoldenDecorations();
@@ -1014,7 +1059,7 @@
       ctx.strokeRect(AREA_X, AREA_Y, AREA_W, AREA_H);
     }
 
-    // 5. 텍스트 표시
+    // 5. 텍스트 표시 (요청 5: 가운데 정렬로 완전 고정)
     if (showText) {
       const cardX = AREA_X;
       const cardY = AREA_Y + AREA_H + 12;
@@ -1036,13 +1081,8 @@
         ctx.stroke();
       }
 
-      const rightPadding = (styleKey === 'hanji') ? 140 : 30;
-      let textX = cardX + 30;
-      if (alignMode === 'center') {
-        textX = cardX + ((cardWidth - (styleKey === 'hanji' ? 60 : 0)) / 2);
-      } else if (alignMode === 'right') {
-        textX = cardX + cardWidth - rightPadding;
-      }
+      // 가운데 정렬 좌표 계산
+      const textX = cardX + ((cardWidth - (styleKey === 'hanji' ? 60 : 0)) / 2);
 
       if (styleKey === 'film') {
         ctx.fillStyle = '#ffffff';
@@ -1054,7 +1094,7 @@
         ctx.fillStyle = '#1a1a1a';
       }
 
-      ctx.textAlign = alignMode;
+      ctx.textAlign = 'center';
       const maxTextW = cardWidth - (styleKey === 'hanji' ? 180 : 80);
       
       const fitFont = (text, basePx = 65, minPx = 20) => {
@@ -1071,35 +1111,50 @@
         }
       };
 
-      fitFont(nameText, 66);
-      ctx.fillText(nameText, textX, cardY + (styleKey === 'film' ? 75 : 80));
+      const hasName = !!nameText;
+      if (hasName) {
+        fitFont(nameText, 66);
+        ctx.fillText(nameText, textX, cardY + (styleKey === 'film' ? 75 : 80));
+      }
       fitFont(messageText, 64);
-      ctx.fillText(messageText, textX, cardY + (styleKey === 'film' ? 165 : 170));
-      ctx.textAlign = 'left';
+      // 이름이 없으면 문구를 카드 가운데에 배치
+      const msgY = hasName ? cardY + (styleKey === 'film' ? 165 : 170)
+                           : cardY + (styleKey === 'film' ? 138 : 133);
+      ctx.fillText(messageText, textX, msgY);
     }
 
-    // 6. 필름 타공 (필름 모드일 때만 적용)
+    // 6. 필름 타공
     if (styleKey === 'film') {
       drawFilmPerforations(SIZE, SIZE);
     }
 
-    // ✨ 7. 모든 프레임 공통: [오른쪽 상단] "GOD LOVES YOU" 각인 (동일 좌표 SIZE - 56, Y: 48)
+    // ✨ 7. 모든 프레임 공통: [왼쪽 상단] "GOD LOVES YOU" 각인
     ctx.save();
     ctx.font = 'bold 22px monospace';
-    ctx.textAlign = 'right';
+    ctx.textAlign = 'left';
+    const stampText = 'GOD LOVES YOU';
+    // 골든 프레임은 왼쪽 위 금빛 물결 장식을 피해 오른쪽으로 비켜서 배치
+    const stampX = styleKey === 'golden' ? 260 : 56;
 
     if (styleKey === 'film') {
+      // 필름 구멍과 겹쳐 읽기 어려우니 글자 뒤에 어두운 바탕을 깐다
+      const tw = ctx.measureText(stampText).width;
+      ctx.fillStyle = '#111113';
+      ctx.fillRect(stampX - 10, 24, tw + 20, 34);
       ctx.fillStyle = '#8e8e93';
     } else if (styleKey === 'golden') {
-      ctx.fillStyle = '#aa8035'; // 앤틱 골드
+      ctx.fillStyle = '#aa8035';
     } else if (styleKey === 'hanji') {
-      ctx.fillStyle = '#827462'; // 먹빛 브라운
-    } else { // polaroid
+      ctx.fillStyle = '#827462';
+    } else {
       ctx.fillStyle = '#8e8e93';
     }
-    ctx.fillText('GOD LOVES YOU', SIZE - 56, 48);
+    ctx.fillText(stampText, stampX, 48);
 
-    // ✨ 8. 모든 프레임 공통: [오른쪽 하단] 날짜·시간 각인 (선과 겹치지 않게 완벽 배치)
+    // 날짜는 오른쪽 정렬
+    ctx.textAlign = 'right';
+
+    // 8. 모든 프레임 공통: [오른쪽 하단] 날짜·시간 각인
     const dateStr = getFilmStripDate(capturedDate || new Date());
     if (styleKey === 'film') {
       ctx.fillStyle = '#8e8e93';
@@ -1110,13 +1165,31 @@
     } else if (styleKey === 'hanji') {
       ctx.fillStyle = '#7a6e5e';
       ctx.fillText(dateStr, SIZE - 56, SIZE - 16);
-    } else { // polaroid
+    } else {
       ctx.fillStyle = '#8e8e93';
       ctx.fillText(dateStr, SIZE - 56, SIZE - 24);
     }
     ctx.restore();
 
-    // 9. 가이드선
+    // 9. 스티커 이모티콘 렌더링
+    stickers.forEach((s, idx) => {
+      ctx.save();
+      ctx.font = `${s.size}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(s.text, s.x, s.y);
+
+      // 선택된 스티커에는 얇은 테두리 점선 표시
+      if (idx === selectedStickerIdx) {
+        ctx.strokeStyle = '#007aff';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(s.x - s.size * 0.55, s.y - s.size * 0.55, s.size * 1.1, s.size * 1.1);
+      }
+      ctx.restore();
+    });
+
+    // 10. 가이드선
     if (showGuides) {
       const cx = AREA_X + AREA_W / 2, cy = AREA_Y + AREA_H / 2;
       const vOk = Math.abs(offX) <= 4, hOk = Math.abs(offY) <= 4;
@@ -1156,6 +1229,7 @@
 
     await ensureFontLoaded();
     showGuides = false;
+    selectedStickerIdx = -1; // 저장할 땐 스티커 선택 테두리 제거
     renderFrame();
     const filmBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95));
 
@@ -1168,7 +1242,7 @@
         await navigator.share({
           files: [file],
           title: '화초전도 사진',
-          text: `${currentName}의 사진입니다.`
+          text: currentName ? `${currentName}의 사진입니다.` : '사진입니다.'
         });
         return;
       } catch (error) {
@@ -1188,9 +1262,9 @@
     nameInput.value = '';
     messageInput.value = '늘 행복하시고 건강하세요!';
     updateCharCount();
-    renderPhrases();
     previewBox.style.display = 'none';
     fontSizePanel.style.display = 'none';
+    stickerPanel.style.display = 'none';
     adjustPanel.style.display = 'none';
     saveBtn.style.display = 'none';
     cameraInput.value = '';
@@ -1198,16 +1272,18 @@
     capturedDate = null;
     srcCanvas = null;
     currentImageFile = null;
+    stickers = [];
   });
 
-  // ===== 자주 쓰는 문구 =====
-  const PHRASE_KEY = 'hwachoPhrases_v2';
+  // ===== 2. 문구 드롭박스 관리 =====
+  const PHRASE_KEY = 'hwachoPhrases_v3';
   const DEFAULT_PHRASES = [
     '늘 행복하시고 건강하세요!',
     '하나님은 당신을 사랑하세요.'
   ];
-  const phraseList = document.getElementById('phraseList');
+  const phraseSelect = document.getElementById('phraseSelect');
   const savePhraseBtn = document.getElementById('savePhraseBtn');
+  const delPhraseBtn = document.getElementById('delPhraseBtn');
 
   function loadPhrases() {
     try {
@@ -1223,54 +1299,48 @@
     try { localStorage.setItem(PHRASE_KEY, JSON.stringify(arr)); } catch (e) {}
   }
 
-  function renderPhrases() {
+  function renderPhraseDropdown() {
     const phrases = loadPhrases();
-    const current = messageInput.value.trim();
-    phraseList.innerHTML = '';
-    phrases.forEach((text, idx) => {
-      const chip = document.createElement('div');
-      chip.className = 'phrase-chip' + (text === current ? ' active' : '');
-
-      const pick = document.createElement('button');
-      pick.type = 'button';
-      pick.className = 'phrase-text';
-      pick.textContent = text;
-      pick.addEventListener('click', () => {
-        messageInput.value = text;
-        messageInput.dispatchEvent(new Event('input'));
-      });
-
-      const del = document.createElement('button');
-      del.type = 'button';
-      del.className = 'phrase-del';
-      del.textContent = '✕';
-      del.setAttribute('aria-label', '문구 삭제');
-      del.addEventListener('click', () => {
-        if (!confirm(`"${text}" 문구를 삭제할까요?`)) return;
-        const arr = loadPhrases();
-        arr.splice(idx, 1);
-        storePhrases(arr);
-        renderPhrases();
-      });
-
-      chip.appendChild(pick);
-      chip.appendChild(del);
-      phraseList.appendChild(chip);
+    phraseSelect.innerHTML = '<option value="" disabled selected>📜 자주 쓰는 문구 선택하기</option>';
+    phrases.forEach((txt) => {
+      const opt = document.createElement('option');
+      opt.value = txt;
+      opt.textContent = txt;
+      phraseSelect.appendChild(opt);
     });
+  }
+
+  function onSelectPhrase(val) {
+    if (!val) return;
+    messageInput.value = val;
+    messageInput.dispatchEvent(new Event('input'));
   }
 
   savePhraseBtn.addEventListener('click', () => {
     const text = messageInput.value.trim();
     if (!text) { alert('저장할 문구를 먼저 입력해 주세요.'); return; }
     const arr = loadPhrases();
-    if (arr.includes(text)) { alert('이미 저장된 문구예요.'); return; }
+    if (arr.includes(text)) { alert('이미 등록된 문구예요.'); return; }
     arr.push(text);
     storePhrases(arr);
-    renderPhrases();
+    renderPhraseDropdown();
+    alert('새 문구가 드롭박스에 저장되었습니다.');
   });
 
-  messageInput.addEventListener('input', renderPhrases);
-  renderPhrases();
+  delPhraseBtn.addEventListener('click', () => {
+    const text = messageInput.value.trim();
+    const arr = loadPhrases();
+    const idx = arr.indexOf(text);
+    if (idx === -1) { alert('드롭박스에 등록되어 있는 문구를 선택한 후 삭제해 주세요.'); return; }
+    if (!confirm(`"${text}" 문구를 목록에서 삭제할까요?`)) return;
+    arr.splice(idx, 1);
+    storePhrases(arr);
+    renderPhraseDropdown();
+    messageInput.value = arr[0] || '';
+    messageInput.dispatchEvent(new Event('input'));
+  });
+
+  renderPhraseDropdown();
 
   // ===== 문구 글자 수 표시 =====
   const MAX_MESSAGE_CHARS = 16;
@@ -1283,7 +1353,7 @@
       charCount.textContent = `${left}자 남음 (${len}/${MAX_MESSAGE_CHARS})`;
       charCount.classList.remove('over');
     } else {
-      charCount.textContent = `${-left}자 초과 (${len}/${MAX_MESSAGE_CHARS}) · 글자가 작아져요`;
+      charCount.textContent = `${-left}자 초과 (${len}/${MAX_MESSAGE_CHARS}) · 글자가 자동 축소됩니다`;
       charCount.classList.add('over');
     }
   }
@@ -1297,7 +1367,6 @@
       btn.classList.toggle('active', (idx === 0) === on);
     });
     document.getElementById('messageGroup').style.display = on ? '' : 'none';
-    document.getElementById('alignSection').style.display = on ? 'flex' : 'none';
     fontSizePanel.style.display = (on && srcCanvas) ? 'flex' : 'none';
 
     AREA_H = on ? AREA_H_TEXT : AREA_H_FULL;
