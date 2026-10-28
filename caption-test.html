@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사진 캡션 읽기 테스트</title>
+<style>
+  body { font-family: -apple-system, sans-serif; padding: 16px; max-width: 480px; margin: 0 auto; background: #f2f2f7; color: #1c1c1e; }
+  h3 { margin: 6px 0 10px; }
+  label.btn { display: block; background: #5856d6; color: #fff; border-radius: 10px; padding: 14px; text-align: center; font-weight: bold; margin: 12px 0; }
+  input[type=file] { display: none; }
+  .box { background: #fff; border-radius: 10px; padding: 12px; margin: 10px 0; font-size: 14px; line-height: 1.5; word-break: break-all; white-space: pre-wrap; }
+  .ok { color: #1a7f37; font-weight: bold; }
+  .no { color: #c62828; font-weight: bold; }
+  .small { font-size: 12px; color: #6c6c70; }
+</style>
+</head>
+<body>
+<h3>📷 사진 캡션 읽기 테스트</h3>
+<div class="small">사진 앱에서 캡션을 넣은 사진을 아래에서 골라 보세요. 사진은 어디에도 전송되지 않고 이 화면에서만 읽어요.</div>
+<label class="btn" for="f">🖼️ 앨범에서 사진 선택</label>
+<input type="file" id="f" accept="image/*">
+<div id="out"></div>
+
+<script>
+  const out = document.getElementById('out');
+  const td = new TextDecoder('utf-8');
+
+  function esc(t) { return String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+  function rs(dv, off, len) { let s = ''; for (let i = 0; i < len; i++) s += String.fromCharCode(dv.getUint8(off + i)); return s; }
+  function clean(t) { return t.replace(/\u0000/g, '').trim(); }
+
+  // EXIF (ImageDescription, UserComment)
+  function parseExif(buf, start, found) {
+    const dv = new DataView(buf);
+    const le = dv.getUint16(start) === 0x4949;
+    const g16 = o => dv.getUint16(o, le), g32 = o => dv.getUint32(o, le);
+    function readIFD(off, depth) {
+      const n = g16(off);
+      for (let i = 0; i < n; i++) {
+        const e = off + 2 + i * 12;
+        const tag = g16(e), type = g16(e + 2), count = g32(e + 4);
+        const size = count * ((type === 3) ? 2 : 1);
+        const valOff = size <= 4 ? e + 8 : start + g32(e + 8);
+        if (tag === 0x010E && (type === 2 || type === 7)) {
+          found.push(['EXIF 이미지 설명', clean(td.decode(new Uint8Array(buf, valOff, count)))]);
+        } else if (tag === 0x9286 && count > 8) {
+          found.push(['EXIF 사용자 코멘트', clean(td.decode(new Uint8Array(buf, valOff + 8, count - 8)))]);
+        } else if (tag === 0x8769 && depth < 2) {
+          readIFD(start + g32(e + 8), depth + 1);
+        }
+      }
+    }
+    readIFD(start + g32(start + 4), 0);
+  }
+
+  // XMP (dc:description 등)
+  function scanXmp(xml, found) {
+    const pick = (tag, label) => {
+      const m = xml.match(new RegExp('<' + tag + '>[\\s\\S]*?</' + tag + '>'));
+      if (m) {
+        const li = m[0].match(/<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/);
+        found.push([label, clean(li ? li[1] : m[0].replace(/<[^>]+>/g, ''))]);
+      }
+    };
+    pick('dc:description', 'XMP 설명 (dc:description)');
+    pick('dc:title', 'XMP 제목 (dc:title)');
+    const h = xml.match(/photoshop:Headline="([^"]*)"/) || xml.match(/<photoshop:Headline>([\s\S]*?)<\/photoshop:Headline>/);
+    if (h) found.push(['XMP 헤드라인', clean(h[1])]);
+  }
+
+  // IPTC (Caption/Abstract 등)
+  function parseIptc(buf, seg, segEnd, found) {
+    const dv = new DataView(buf);
+    let p = seg + 14; // "Photoshop 3.0\0"
+    while (p + 12 < segEnd) {
+      if (rs(dv, p, 4) !== '8BIM') break;
+      const id = dv.getUint16(p + 4);
+      let q = p + 6;
+      const nl = dv.getUint8(q); q += 1 + nl; if ((1 + nl) % 2) q++;
+      const len = dv.getUint32(q); q += 4;
+      if (id === 0x0404) {
+        let r = q;
+        while (r + 5 <= q + len) {
+          if (dv.getUint8(r) !== 0x1C) break;
+          const rec = dv.getUint8(r + 1), ds = dv.getUint8(r + 2), l = dv.getUint16(r + 3);
+          if (rec === 2) {
+            const txt = clean(td.decode(new Uint8Array(buf, r + 5, l)));
+            const names = { 120: 'IPTC 캡션', 105: 'IPTC 헤드라인', 5: 'IPTC 제목', 122: 'IPTC 작성자', 25: 'IPTC 키워드' };
+            if (names[ds]) found.push([names[ds], txt]);
+          }
+          r += 5 + l;
+        }
+      }
+      q += len; if (len % 2) q++;
+      p = q;
+    }
+  }
+
+  function scanJpeg(buf, found) {
+    const dv = new DataView(buf);
+    if (dv.getUint16(0) !== 0xFFD8) return false;
+    let p = 2;
+    while (p < dv.byteLength - 4) {
+      if (dv.getUint8(p) !== 0xFF) { p++; continue; }
+      const m = dv.getUint8(p + 1);
+      if (m === 0xDA || m === 0xD9) break;
+      if (m === 0x00 || m === 0xFF || (m >= 0xD0 && m <= 0xD7) || m === 0x01) { p += 2; continue; }
+      const len = dv.getUint16(p + 2), seg = p + 4, end = p + 2 + len;
+      try {
+        if (m === 0xE1) {
+          if (rs(dv, seg, 6) === 'Exif\0\0') parseExif(buf, seg + 6, found);
+          else if (rs(dv, seg, 28).indexOf('http://ns.adobe.com/xap/1.0/') === 0) {
+            scanXmp(td.decode(new Uint8Array(buf, seg + 29, end - seg - 29)), found);
+          }
+        } else if (m === 0xED) parseIptc(buf, seg, end, found);
+      } catch (e) { found.push(['읽기 오류', String(e)]); }
+      p = end;
+    }
+    return true;
+  }
+
+  // JPEG가 아닐 때(HEIC 등): 파일 안에서 XMP 덩어리를 직접 찾아봄
+  function scanRaw(buf, found) {
+    const u8 = new Uint8Array(buf);
+    let s = '';
+    for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
+    const a = s.indexOf('<x:xmpmeta'), b = s.indexOf('</x:xmpmeta>');
+    if (a >= 0 && b > a) {
+      const bytes = new Uint8Array(b + 12 - a);
+      for (let i = 0; i < bytes.length; i++) bytes[i] = u8[a + i];
+      scanXmp(td.decode(bytes), found);
+    }
+  }
+
+  document.getElementById('f').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const buf = await file.arrayBuffer();
+    const found = [];
+    const isJpeg = scanJpeg(buf, found);
+    if (!isJpeg) scanRaw(buf, found);
+
+    let html = `<div class="box">파일: ${esc(file.name)}\n형식: ${esc(file.type || '알 수 없음')} (${isJpeg ? 'JPEG' : 'JPEG 아님'})\n크기: ${(file.size / 1024 / 1024).toFixed(2)} MB</div>`;
+    const withText = found.filter(x => x[1]);
+    if (withText.length) {
+      html += '<div class="box"><span class="ok">✅ 사진 안에서 아래 글자를 찾았어요</span>\n\n' +
+        withText.map(x => esc(x[0]) + ':\n   ' + esc(x[1])).join('\n\n') + '</div>';
+    } else {
+      html += '<div class="box"><span class="no">❌ 캡션(설명) 글자를 찾지 못했어요</span>\n\n이 사진에는 캡션이 없거나, 사파리가 사진을 넘길 때 캡션을 빼고 전달했을 수 있어요.</div>';
+    }
+    out.innerHTML = html;
+  });
+</script>
+</body>
+</html>
