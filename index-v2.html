@@ -188,7 +188,7 @@
 
 <div class="container">
   <h2>🌿 화초전도 사진찍기</h2>
-  <div class="version-badge">ver 2.1 · 2026.10.29 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
+  <div class="version-badge">ver 2.2 · 2026.10.29 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
 
   <!-- 이름·전화번호·메모는 사진 캡션에서 자동으로 채워져요 (화면에는 보이지 않는 값 보관용) -->
   <div style="display:none;">
@@ -1515,12 +1515,13 @@
     if (!arr.length) { refreshPendingUI(); return; }
     sendingNow = true;
     setSheetStatus('📒 시트에 기록 중…', false);
-    let failed = false, errMsg = '', allVerified = true, warn = '';
+    let failed = false, errMsg = '', allVerified = true, warn = '', ver = '';
     for (const rec of arr.slice()) {
       const r = await postRecord(url, rec);
       if (!r.ok) { failed = true; errMsg = (r.data && r.data.error) ? r.data.error : ''; break; }
       if (!r.verified) allVerified = false;
       if (r.data && r.data.warn) warn = r.data.warn;
+      if (r.data && r.data.ver) ver = r.data.ver;
       savePending(loadPending().filter(x => x.id !== rec.id));
     }
     sendingNow = false;
@@ -1528,7 +1529,7 @@
       refreshPendingUI();
       if (errMsg) setSheetStatus('⚠️ 시트 쪽 오류: ' + errMsg, true);
     } else if (allVerified) {
-      setSheetStatus('📒 시트에 기록했어요 ✅' + (warn ? ' (' + warn + ')' : ''), false);
+      setSheetStatus('📒 시트에 기록했어요 ✅' + (warn ? ' (' + warn + ')' : '') + (ver ? ' · 스크립트 v' + ver : ''), !!warn);
       refreshPendingUI();
     } else {
       setSheetStatus('📤 시트로 보냈어요. 시트에 줄이 생겼는지 한 번 확인해 주세요', false);
@@ -1586,7 +1587,7 @@
     if (bad) { setSheetStatus('⚠️ ' + bad, true); return; }
     setSheetStatus('📒 시험 기록을 보내는 중…', false);
     const r = await postRecord(url, { id: 'test-' + Date.now().toString(36), date: todayStr(), people: [{ name: '연결시험', phone: '' }], memo: '시험용 줄이에요 (지우셔도 돼요)', thumb: '', full: '' });
-    if (r.ok && r.verified) setSheetStatus('✅ 연결 성공! 시트에 "연결시험" 줄이 생겼는지 보고 지워 주세요', false);
+    if (r.ok && r.verified) setSheetStatus('✅ 연결 성공' + ((r.data && r.data.ver) ? ' (스크립트 v' + r.data.ver + ')' : ' (스크립트가 예전 코드예요: 새 버전으로 배포해 주세요)') + '! 시트에 "연결시험" 줄이 생겼는지 보고 지워 주세요', false);
     else if (r.ok) setSheetStatus('📤 보내기는 했어요. 시트에 "연결시험" 줄이 생겼는지 확인해 주세요. 없다면 스크립트 배포 설정을 점검해야 해요', true);
     else setSheetStatus('⚠️ 실패: ' + ((r.data && r.data.error) ? r.data.error : '인터넷 연결이나 주소를 확인해 주세요'), true);
   }
