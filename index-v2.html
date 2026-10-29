@@ -188,7 +188,7 @@
 
 <div class="container">
   <h2>🌿 화초전도 사진찍기</h2>
-  <div class="version-badge">ver 2.0 · 2026.10.29 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 여러 명 지원</div>
+  <div class="version-badge">ver 2.1 · 2026.10.29 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
 
   <!-- 이름·전화번호·메모는 사진 캡션에서 자동으로 채워져요 (화면에는 보이지 않는 값 보관용) -->
   <div style="display:none;">
@@ -315,13 +315,14 @@
     <button type="button" class="phrase-mini-btn" id="resendBtn" style="display:none;">다시 보내기</button>
   </div>
 
-  <details class="sheet-settings">
+  <details class="sheet-settings" id="sheetDetails">
     <summary>⚙️ 구글 시트 연결 (처음 한 번만)</summary>
     <div class="sheet-body">
       <div class="adjust-hint" style="text-align:left;">시트에 만든 웹앱 주소를 붙여넣고 저장하세요. 이 주소는 이 폰에만 저장돼요.</div>
       <input type="text" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
       <div class="adjust-btns">
         <button type="button" class="option-btn" id="sheetUrlSaveBtn">주소 저장</button>
+        <button type="button" class="option-btn" id="sheetTestBtn">연결 시험</button>
         <button type="button" class="option-btn" id="sheetUrlClearBtn">연결 끊기</button>
       </div>
     </div>
@@ -1267,6 +1268,7 @@
     showGuides = false;
     selectedStickerIdx = -1; // 저장할 땐 스티커 선택 테두리 제거
     renderFrame();
+    currentPhoto = makePhotoPayload();
     const filmBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95));
 
     const fileName = `${fileNames}_${fileDateStr}.jpg`;
@@ -1435,6 +1437,7 @@
   const sheetStatusText = document.getElementById('sheetStatusText');
   const resendBtn = document.getElementById('resendBtn');
   let recordedPhotoId = '';
+  let currentPhoto = null;   // 저장하는 순간의 완성 사진 {thumb, full} (시트에 넣을 용도)
   let sendingNow = false;
 
   function getSheetUrl() { try { return localStorage.getItem(SHEET_URL_KEY) || ''; } catch (e) { return ''; } }
@@ -1442,7 +1445,7 @@
     try { const a = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); return Array.isArray(a) ? a : []; }
     catch (e) { return []; }
   }
-  function savePending(a) { try { localStorage.setItem(PENDING_KEY, JSON.stringify(a)); } catch (e) {} }
+  function savePending(a) { try { localStorage.setItem(PENDING_KEY, JSON.stringify(a)); return true; } catch (e) { return false; } }
 
   function setSheetStatus(msg, isErr) {
     sheetStatusText.textContent = msg;
@@ -1475,19 +1478,32 @@
     finally { clearTimeout(timer); }
   }
 
-  // 한 건 전송: 응답을 읽을 수 있으면 확인하고, 못 읽으면(브라우저 제한) 보낸 것으로 보되 중복은 시트 쪽에서 걸러냄
+  // 완성된 사진을 시트에 넣을 크기로 준비: 작은 미리보기(300px) + 크게 볼 원본(1200px)
+  function makePhotoPayload() {
+    try {
+      const t = document.createElement('canvas');
+      t.width = 300; t.height = 300;
+      t.getContext('2d').drawImage(canvas, 0, 0, 300, 300);
+      return {
+        thumb: t.toDataURL('image/jpeg', 0.7).split(',')[1],
+        full: canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
+      };
+    } catch (e) { return { thumb: '', full: '' }; }
+  }
+
+  // 한 건 전송: 응답을 읽을 수 있으면 결과를 확인하고, 못 읽으면(브라우저 제한) 보낸 것으로만 보되 중복은 시트 쪽에서 걸러냄
   async function postRecord(url, rec) {
     const body = JSON.stringify(rec);
     try {
-      const res = await fetchWithTimeout(url, { method: 'POST', body: body, redirect: 'follow' }, 15000);
+      const res = await fetchWithTimeout(url, { method: 'POST', body: body, redirect: 'follow' }, 45000);
       const data = await res.json();
-      return !!(data && data.ok);
+      return { ok: !!(data && data.ok), verified: true, data: data };
     } catch (e1) {
       try {
-        await fetchWithTimeout(url, { method: 'POST', body: body, mode: 'no-cors' }, 15000);
-        return true;
+        await fetchWithTimeout(url, { method: 'POST', body: body, mode: 'no-cors' }, 45000);
+        return { ok: true, verified: false, data: null };
       } catch (e2) {
-        return false;
+        return { ok: false, verified: false, data: null };
       }
     }
   }
@@ -1495,29 +1511,34 @@
   async function sendPending() {
     const url = getSheetUrl();
     if (!url || sendingNow) return;
-    let arr = loadPending();
+    const arr = loadPending();
     if (!arr.length) { refreshPendingUI(); return; }
     sendingNow = true;
     setSheetStatus('📒 시트에 기록 중…', false);
-    let failed = false;
+    let failed = false, errMsg = '', allVerified = true, warn = '';
     for (const rec of arr.slice()) {
-      const ok = await postRecord(url, rec);
-      if (!ok) { failed = true; break; }
-      savePending(loadPending().filter(r => r.id !== rec.id));
+      const r = await postRecord(url, rec);
+      if (!r.ok) { failed = true; errMsg = (r.data && r.data.error) ? r.data.error : ''; break; }
+      if (!r.verified) allVerified = false;
+      if (r.data && r.data.warn) warn = r.data.warn;
+      savePending(loadPending().filter(x => x.id !== rec.id));
     }
     sendingNow = false;
     if (failed) {
       refreshPendingUI();
-      if (!loadPending().length) setSheetStatus('', false);
+      if (errMsg) setSheetStatus('⚠️ 시트 쪽 오류: ' + errMsg, true);
+    } else if (allVerified) {
+      setSheetStatus('📒 시트에 기록했어요 ✅' + (warn ? ' (' + warn + ')' : ''), false);
+      refreshPendingUI();
     } else {
-      setSheetStatus('📒 시트에 기록했어요 ✅', false);
+      setSheetStatus('📤 시트로 보냈어요. 시트에 줄이 생겼는지 한 번 확인해 주세요', false);
       refreshPendingUI();
     }
   }
 
-  // 사진을 저장·공유한 뒤 호출: 사진에 나온 사람마다 한 줄씩 대기 목록에 넣고 전송
+  // 사진을 저장·공유한 뒤 호출: 사진 한 장을 한 묶음(사람 여러 명 + 사진)으로 대기 목록에 넣고 전송
   function recordPerson() {
-    if (!getSheetUrl() || !currentImageFile) return;
+    if (!currentImageFile) return;
     const photoId = currentImageFile.name + '|' + currentImageFile.lastModified + '|' + currentImageFile.size;
     if (photoId === recordedPhotoId) return;          // 같은 사진을 다시 공유해도 중복 기록 안 함
     let list = people.filter(p => p.name || p.phone);
@@ -1525,15 +1546,39 @@
       const n = nameInput.value.trim();
       if (n) list = [{ name: n, phone: '' }];
     }
-    if (!list.length) return;
-    recordedPhotoId = photoId;
-    const base = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    if (!list.length) { setSheetStatus('📒 사진 캡션에 이름이 없어서 시트에는 기록하지 않았어요', true); return; }
+    if (!getSheetUrl()) {
+      setSheetStatus('⚠️ 이 화면에는 구글 시트 주소가 저장되어 있지 않아 기록하지 못했어요. 아래 ⚙️ 설정에서 주소를 저장해 주세요', true);
+      document.getElementById('sheetDetails').open = true;
+      return;
+    }
+    const batch = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      date: todayStr(),
+      people: list.map(p => ({ name: p.name, phone: p.phone })),
+      memo: '',
+      thumb: currentPhoto ? currentPhoto.thumb : '',
+      full: currentPhoto ? currentPhoto.full : ''
+    };
     const arr = loadPending();
-    list.forEach((p, i) => {
-      arr.push({ id: base + '-' + (i + 1), name: p.name, phone: p.phone, date: todayStr(), memo: '' });
-    });
-    savePending(arr);
+    arr.push(batch);
+    if (!savePending(arr)) {            // 폰 저장 공간이 모자라면 원본 사진은 빼고 다시 시도
+      batch.full = '';
+      if (!savePending(arr)) { setSheetStatus('⚠️ 폰 저장 공간이 부족해 기록을 준비하지 못했어요', true); return; }
+    }
+    recordedPhotoId = photoId;
     sendPending();
+  }
+
+  // 연결 시험: 시트에 "연결시험" 줄을 한 줄 보내 보고 결과를 알려 줌
+  async function testSheet() {
+    const url = sheetUrlInput.value.trim() || getSheetUrl();
+    if (!url) { alert('먼저 웹앱 주소를 붙여넣어 주세요.'); return; }
+    setSheetStatus('📒 시험 기록을 보내는 중…', false);
+    const r = await postRecord(url, { id: 'test-' + Date.now().toString(36), date: todayStr(), people: [{ name: '연결시험', phone: '' }], memo: '시험용 줄이에요 (지우셔도 돼요)', thumb: '', full: '' });
+    if (r.ok && r.verified) setSheetStatus('✅ 연결 성공! 시트에 "연결시험" 줄이 생겼는지 보고 지워 주세요', false);
+    else if (r.ok) setSheetStatus('📤 보내기는 했어요. 시트에 "연결시험" 줄이 생겼는지 확인해 주세요. 없다면 스크립트 배포 설정을 점검해야 해요', true);
+    else setSheetStatus('⚠️ 실패: ' + ((r.data && r.data.error) ? r.data.error : '인터넷 연결이나 주소를 확인해 주세요'), true);
   }
 
   // 시트 연결 설정
@@ -1549,6 +1594,7 @@
     refreshPendingUI();
     sendPending();
   });
+  document.getElementById('sheetTestBtn').addEventListener('click', testSheet);
   document.getElementById('sheetUrlClearBtn').addEventListener('click', () => {
     if (!confirm('시트 연결을 끊을까요? (아직 못 보낸 기록은 그대로 남아 있어요)')) return;
     try { localStorage.removeItem(SHEET_URL_KEY); } catch (e) {}
