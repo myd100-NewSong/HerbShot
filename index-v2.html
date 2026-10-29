@@ -1570,10 +1570,20 @@
     sendPending();
   }
 
+  // 시트 웹앱 주소가 맞는 모양인지 검사: 맞으면 '', 틀리면 이유를 돌려줌
+  function checkSheetUrl(v) {
+    if (/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(v)) return '';
+    if (/\/macros\/library\//.test(v)) return '이 주소는 "라이브러리 주소"라서 쓸 수 없어요. Apps Script의 [배포 → 배포 관리]에서 "웹 앱" 주소(…/macros/s/…/exec)를 복사해 주세요.';
+    if (/\/dev$/.test(v)) return '이 주소는 테스트용(/dev) 주소예요. [배포 → 배포 관리]의 웹 앱 주소(…/exec)를 써 주세요.';
+    return '웹앱 주소가 올바르지 않아요. https://script.google.com/macros/s/…/exec 모양이어야 해요.';
+  }
+
   // 연결 시험: 시트에 "연결시험" 줄을 한 줄 보내 보고 결과를 알려 줌
   async function testSheet() {
     const url = sheetUrlInput.value.trim() || getSheetUrl();
     if (!url) { alert('먼저 웹앱 주소를 붙여넣어 주세요.'); return; }
+    const bad = checkSheetUrl(url);
+    if (bad) { setSheetStatus('⚠️ ' + bad, true); return; }
     setSheetStatus('📒 시험 기록을 보내는 중…', false);
     const r = await postRecord(url, { id: 'test-' + Date.now().toString(36), date: todayStr(), people: [{ name: '연결시험', phone: '' }], memo: '시험용 줄이에요 (지우셔도 돼요)', thumb: '', full: '' });
     if (r.ok && r.verified) setSheetStatus('✅ 연결 성공! 시트에 "연결시험" 줄이 생겼는지 보고 지워 주세요', false);
@@ -1585,10 +1595,8 @@
   sheetUrlInput.value = getSheetUrl();
   document.getElementById('sheetUrlSaveBtn').addEventListener('click', () => {
     const v = sheetUrlInput.value.trim();
-    if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(v)) {
-      alert('주소가 올바르지 않아요. https://script.google.com/macros/s/.../exec 모양인지 확인해 주세요.');
-      return;
-    }
+    const bad = checkSheetUrl(v);
+    if (bad) { alert(bad); return; }
     try { localStorage.setItem(SHEET_URL_KEY, v); } catch (e) {}
     setSheetStatus('📒 시트 연결 주소를 저장했어요', false);
     refreshPendingUI();
