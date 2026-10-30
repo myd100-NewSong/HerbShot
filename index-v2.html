@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.4.8</title>
+  <title>화초전도 사진찍기 v2.0.1</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.4.8">
+  <meta property="og:title" content="화초전도 사진찍기 v2.0.1">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -191,8 +191,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.4.8</h2>
-  <div class="version-badge">ver 2.4.8 · 2026.10.30 업데이트<br>한글 캡션 인코딩 수정 · 구글 시트 자동 기록</div>
+  <h2>🌿 화초전도 사진찍기 v2.0.1</h2>
+  <div class="version-badge">ver 2.0.1 · 2026.10.30 업데이트<br>한글 인코딩 수정 · 공유 제목 제거 · 구글 시트 자동 기록</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -519,16 +519,13 @@
     requestRender();
   }
 
-  // 🛠️ 파일 이름의 한글 인코딩 깨짐(모바일 디코딩 오류) 강제 보정 함수
   function decodeKoreanFileName(fileName) {
     try {
       if (!fileName) return '';
-      // 만약 잘못 디코딩된 바이트 시퀀스가 포함되어 있다면 정돈
       let decoded = decodeURIComponent(escape(fileName));
       return decoded;
     } catch (e) {
       try {
-        // 브라우저 환경에 따라 TextDecoder 활용
         const bytes = Uint8Array.from([...fileName].map(c => c.charCodeAt(0)));
         const decodedUtf8 = new TextDecoder('utf-8').decode(bytes);
         if (decodedUtf8 && !decodedUtf8.includes('')) return decodedUtf8;
@@ -547,7 +544,6 @@
     people = [];
     captionInfo.style.display = 'none';
 
-    // 파일 이름 한글 깨짐 방지 적용
     let rawFileName = file.name;
     let fixedFileName = decodeKoreanFileName(rawFileName);
     let originalName = fixedFileName.substring(0, fixedFileName.lastIndexOf('.')) || fixedFileName;
@@ -1275,11 +1271,11 @@
     const fileName = `${fileNames}_${fileDateStr}.jpg`;
     const file = new File([filmBlob], fileName, { type: 'image/jpeg' });
 
+    // title 속성 제거로 사진만 첨부되도록 처리됨
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
-          files: [file],
-          title: '화초전도 사진'
+          files: [file]
         });
         recordPerson();
         return;
@@ -1656,7 +1652,6 @@
     return safe || '미지정';
   }
 
-  // 🛠️ EXIF / 메타데이터 읽을 때 한글 인코딩 깨짐 방지 디코딩 보완
   async function readCaptionFromFile(file) {
     try {
       let exifText = "";
