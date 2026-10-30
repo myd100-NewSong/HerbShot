@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.4.6</title>
+  <title>화초전도 사진찍기 v2.4.7</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.4.6">
+  <meta property="og:title" content="화초전도 사진찍기 v2.4.7">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -191,8 +191,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.4.6</h2>
-  <div class="version-badge">ver 2.4.6 · 2026.10.30 업데이트<br>사진 캡션 인식 강화 · 구글 시트 자동 기록</div>
+  <h2>🌿 화초전도 사진찍기 v2.4.7</h2>
+  <div class="version-badge">ver 2.4.7 · 2026.10.30 업데이트<br>사진 공유 텍스트 제거 · 구글 시트 자동 기록</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -529,7 +529,6 @@
     people = [];
     captionInfo.style.display = 'none';
 
-    // 1순위: 파일 이름(파일명 자체에 이름/번호가 포함된 경우 우선 추출)
     let originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     let extractedName = originalName.split('_')[0];
 
@@ -1254,14 +1253,13 @@
 
     const fileName = `${fileNames}_${fileDateStr}.jpg`;
     const file = new File([filmBlob], fileName, { type: 'image/jpeg' });
-    const currentName = getCardName();
 
+    // 🛠️ [수정됨] 아이폰 공유 시 사진 위에 불필요한 텍스트("__ 님의 사진입니다")가 나타나지 않도록 text 속성을 완전히 제거했습니다.
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
           files: [file],
-          title: '화초전도 사진',
-          text: currentName ? `${currentName}의 사진입니다.` : '사진입니다.'
+          title: '화초전도 사진'
         });
         recordPerson();
         return;
@@ -1638,10 +1636,8 @@
     return safe || '미지정';
   }
 
-  // 🛠️ 파일 메타데이터(Exif 이미지 설명, 파일명, EXIF UserComment 등) 통합 추출 기능 개선
   async function readCaptionFromFile(file) {
     try {
-      // 1순위: EXIF-js 라이브러리를 통한 EXIF 태그(이미지 설명 0x010E 등) 읽기
       let exifText = "";
       if (window.EXIF) {
         await new Promise((resolve) => {
@@ -1655,7 +1651,6 @@
         return exifText.trim();
       }
 
-      // 2순위: 바이너리 직접 파싱 (JPEG 구조 내 EXIF / IPTC / XMP 블록 탐색)
       const buf = await file.slice(0, 65536).arrayBuffer();
       const dv = new DataView(buf);
       if (dv.getUint16(0) !== 0xFFD8) return '';
