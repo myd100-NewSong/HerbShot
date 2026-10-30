@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.0.6</title>
+  <title>화초전도 사진찍기 v2.0.8</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.0.6">
+  <meta property="og:title" content="화초전도 사진찍기 v2.0.8">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -191,8 +191,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.0.6</h2>
-  <div class="version-badge">ver 2.0.6 · 촬영일시 및 E열/F열 연동 완료</div>
+  <h2>🌿 화초전도 사진찍기 v2.0.8</h2>
+  <div class="version-badge">ver 2.0.8 · 열 밀림 현상 방지 완료</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -1551,8 +1551,8 @@
       return;
     }
     
+    // id 필드 제거 완료 (시트 열 밀림 현상 방지)
     const batch = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
       date: todayStr(),
       photoDate: formatPhotoDateTime(capturedDate),
       people: list.map(p => ({ name: p.name, phone: p.phone })),
@@ -1584,7 +1584,7 @@
     const bad = checkSheetUrl(url);
     if (bad) { setSheetStatus('⚠️ ' + bad, true); return; }
     setSheetStatus('📒 시험 기록을 보내는 중…', false);
-    const r = await postRecord(url, { id: 'test-' + Date.now().toString(36), date: todayStr(), photoDate: formatPhotoDateTime(new Date()), people: [{ name: '연결시험', phone: '' }], memo: '시험용 줄이에요 (지우셔도 돼요)', thumb: '', full: '' });
+    const r = await postRecord(url, { date: todayStr(), photoDate: formatPhotoDateTime(new Date()), people: [{ name: '연결시험', phone: '' }], memo: '시험용 줄이에요 (지우셔도 돼요)', thumb: '', full: '' });
     if (r.ok && r.verified) setSheetStatus('✅ 연결 성공' + ((r.data && r.data.ver) ? ' (스크립트 v' + r.data.ver + ')' : ' (스크립트가 예전 코드예요: 새 버전으로 배포해 주세요)') + '! 시트에 "연결시험" 줄이 생겼는지 보고 지워 주세요', false);
     else if (r.ok) setSheetStatus('📤 보내기는 했어요. 시트에 "연결시험" 줄이 생겼는지 확인해 주세요. 없다면 스크립트 배포 설정을 점검해야 해요', true);
     else setSheetStatus('⚠️ 실패: ' + ((r.data && r.data.error) ? r.data.error : '인터넷 연결이나 주소를 확인해 주세요'), true);
