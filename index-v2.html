@@ -53,6 +53,11 @@
       letter-spacing: 0.5px;
     }
 
+    #phoneInput {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+      font-size: 15px !important;
+    }
+
     /* 2. 문구 드롭다운 스타일 */
     .dropdown-row { display: flex; gap: 6px; }
     .phrase-select {
@@ -100,12 +105,12 @@
       border-color: #007aff; 
     }
 
-    /* 4. 사진찍기 & 앨범 버튼 5:5 나란히 배치 */
-    .btn-row { display: flex; gap: 8px; width: 100%; margin: 2px 0; }
-    .btn-half { 
-      flex: 1;
+    /* 4. 앨범 선택 버튼 (단독 전체 배치) */
+    .btn-row { display: flex; width: 100%; margin: 2px 0; }
+    .btn-full { 
+      width: 100%;
       padding: 13px 0; 
-      font-size: 15px; 
+      font-size: 16px; 
       font-weight: bold; 
       color: #ffffff !important; 
       -webkit-text-fill-color: #ffffff !important;
@@ -115,7 +120,6 @@
       text-align: center; 
       text-decoration: none;
     }
-    .btn-camera { background-color: #007aff; }
     .btn-gallery { background-color: #5856d6; }
     .file-input { display: none; }
 
@@ -188,12 +192,21 @@
 
 <div class="container">
   <h2>🌿 화초전도 사진찍기</h2>
-  <div class="version-badge">ver 2.2 · 2026.10.29 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
+  <div class="version-badge">ver 2.2 · 2026.10.30 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
 
-  <!-- 이름·전화번호·메모는 사진 캡션에서 자동으로 채워져요 (화면에는 보이지 않는 값 보관용) -->
+  <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
+  <div class="input-group">
+    <label class="input-label" for="nameInput">👤 대상자 이름 (사진 캡션 없을 때 사용)</label>
+    <input type="text" id="nameInput" placeholder="예: 홍길동">
+  </div>
+
+  <div class="input-group">
+    <label class="input-label" for="phoneInput">📞 전화번호 (사진 캡션 없을 때 사용)</label>
+    <input type="tel" id="phoneInput" placeholder="010-0000-0000">
+  </div>
+
+  <!-- 메모 보관용 (필요 시 숨김) -->
   <div style="display:none;">
-    <input type="text" id="nameInput">
-    <input type="tel" id="phoneInput">
     <input type="text" id="memoInput">
   </div>
 
@@ -222,12 +235,9 @@
     </div>
   </div>
 
-  <!-- 4. 사진찍기 및 앨범 선택 버튼 (5:5 같은 줄 배치) -->
+  <!-- 앨범 선택 버튼만 단독 표시 -->
   <div class="btn-row">
-    <label for="camera-input" class="btn-half btn-camera">📷 사진 찍기</label>
-    <input type="file" id="camera-input" class="file-input" accept="image/*" capture="environment">
-
-    <label for="gallery-input" class="btn-half btn-gallery">🖼️ 앨범 선택</label>
+    <label for="gallery-input" class="btn-full btn-gallery">🖼️ 앨범에서 사진 선택</label>
     <input type="file" id="gallery-input" class="file-input" accept="image/*">
   </div>
 
@@ -331,8 +341,9 @@
 
 <script>
   const nameInput = document.getElementById('nameInput');
+  const phoneInput = document.getElementById('phoneInput');
+  const memoInput = document.getElementById('memoInput');
   const messageInput = document.getElementById('messageInput');
-  const cameraInput = document.getElementById('camera-input');
   const galleryInput = document.getElementById('gallery-input');
   const previewBox = document.getElementById('previewBox');
   const adjustPanel = document.getElementById('adjustPanel');
@@ -526,7 +537,6 @@
     let extractedName = originalName.split('_')[0];
 
     // 파일명이 "한글이름_..." 형태일 때만 자동 입력 (IMG_1234 같은 카메라 파일명은 무시)
-    // 직접 입력한 이름은 덮어쓰지 않고, 직전에 자동 입력된 이름만 새 이름으로 교체
     const cleanedName = extractedName.replace(/[\s님]+/g, '').trim();
     const looksLikeName = /[가-힣]/.test(cleanedName) && cleanedName !== '미지정' && cleanedName.length < 15;
     const currentTyped = nameInput.value.trim();
@@ -716,7 +726,6 @@
   document.getElementById('fitAllBtn').addEventListener('click', fitAllView);
   document.getElementById('fillBtn').addEventListener('click', fillView);
 
-  cameraInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
   galleryInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
 
   nameInput.addEventListener('input', () => { if (currentImageFile) updatePreview(); });
@@ -1098,7 +1107,7 @@
       ctx.strokeRect(AREA_X, AREA_Y, AREA_W, AREA_H);
     }
 
-    // 5. 텍스트 표시 (요청 5: 가운데 정렬로 완전 고정)
+    // 5. 텍스트 표시
     if (showText) {
       const cardX = AREA_X;
       const cardY = AREA_Y + AREA_H + 12;
@@ -1172,11 +1181,9 @@
     ctx.font = 'bold 22px monospace';
     ctx.textAlign = 'left';
     const stampText = 'GOD LOVES YOU';
-    // 골든 프레임은 왼쪽 위 금빛 물결 장식을 피해 오른쪽으로 비켜서 배치
     const stampX = styleKey === 'golden' ? 260 : 56;
 
     if (styleKey === 'film') {
-      // 필름 구멍과 겹쳐 읽기 어려우니 글자 뒤에 어두운 바탕을 깐다
       const tw = ctx.measureText(stampText).width;
       ctx.fillStyle = '#111113';
       ctx.fillRect(stampX - 10, 24, tw + 20, 34);
@@ -1218,7 +1225,6 @@
       ctx.textBaseline = 'middle';
       ctx.fillText(s.text, s.x, s.y);
 
-      // 선택된 스티커에는 얇은 테두리 점선 표시
       if (idx === selectedStickerIdx) {
         ctx.strokeStyle = '#007aff';
         ctx.lineWidth = 2;
@@ -1266,7 +1272,7 @@
 
     await ensureFontLoaded();
     showGuides = false;
-    selectedStickerIdx = -1; // 저장할 땐 스티커 선택 테두리 제거
+    selectedStickerIdx = -1;
     renderFrame();
     currentPhoto = makePhotoPayload();
     const filmBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95));
@@ -1282,7 +1288,7 @@
           title: '화초전도 사진',
           text: currentName ? `${currentName}의 사진입니다.` : '사진입니다.'
         });
-        recordPerson();   // 공유까지 마쳤을 때만 시트에 기록
+        recordPerson();
         return;
       } catch (error) {
         if (error.name !== 'AbortError') console.log('공유 취소', error);
@@ -1296,7 +1302,7 @@
     downloadLink.click();
     document.body.removeChild(downloadLink);
 
-    recordPerson();   // 다운로드 저장 시에도 시트에 기록
+    recordPerson();
 
     alert(`'${fileName}' 저장 완료!`);
 
@@ -1311,7 +1317,6 @@
     stickerPanel.style.display = 'none';
     adjustPanel.style.display = 'none';
     saveBtn.style.display = 'none';
-    cameraInput.value = '';
     galleryInput.value = '';
     capturedDate = null;
     srcCanvas = null;
@@ -1430,14 +1435,12 @@
   // ===== 만난 사람 기록 (구글 시트) =====
   const SHEET_URL_KEY = 'hwachoSheetUrl';
   const PENDING_KEY = 'hwachoPendingRecords';
-  const phoneInput = document.getElementById('phoneInput');
-  const memoInput = document.getElementById('memoInput');
   const sheetUrlInput = document.getElementById('sheetUrlInput');
   const sheetStatusEl = document.getElementById('sheetStatus');
   const sheetStatusText = document.getElementById('sheetStatusText');
   const resendBtn = document.getElementById('resendBtn');
   let recordedPhotoId = '';
-  let currentPhoto = null;   // 저장하는 순간의 완성 사진 {thumb, full} (시트에 넣을 용도)
+  let currentPhoto = null;
   let sendingNow = false;
 
   function getSheetUrl() { try { return localStorage.getItem(SHEET_URL_KEY) || ''; } catch (e) { return ''; } }
@@ -1478,7 +1481,6 @@
     finally { clearTimeout(timer); }
   }
 
-  // 완성된 사진을 시트에 넣을 크기로 준비: 작은 미리보기(300px) + 크게 볼 원본(1200px)
   function makePhotoPayload() {
     try {
       const t = document.createElement('canvas');
@@ -1491,7 +1493,6 @@
     } catch (e) { return { thumb: '', full: '' }; }
   }
 
-  // 한 건 전송: 응답을 읽을 수 있으면 결과를 확인하고, 못 읽으면(브라우저 제한) 보낸 것으로만 보되 중복은 시트 쪽에서 걸러냄
   async function postRecord(url, rec) {
     const body = JSON.stringify(rec);
     try {
@@ -1537,17 +1538,19 @@
     }
   }
 
-  // 사진을 저장·공유한 뒤 호출: 사진 한 장을 한 묶음(사람 여러 명 + 사진)으로 대기 목록에 넣고 전송
   function recordPerson() {
     if (!currentImageFile) return;
     const photoId = currentImageFile.name + '|' + currentImageFile.lastModified + '|' + currentImageFile.size;
-    if (photoId === recordedPhotoId) return;          // 같은 사진을 다시 공유해도 중복 기록 안 함
+    if (photoId === recordedPhotoId) return;
+
     let list = people.filter(p => p.name || p.phone);
     if (!list.length) {
       const n = nameInput.value.trim();
-      if (n) list = [{ name: n, phone: '' }];
+      const p = phoneInput.value.trim();
+      if (n || p) list = [{ name: n, phone: p }];
     }
-    if (!list.length) { setSheetStatus('📒 사진 캡션에 이름이 없어서 시트에는 기록하지 않았어요', true); return; }
+
+    if (!list.length) { setSheetStatus('📒 입력된 이름/전화번호나 사진 캡션 정보가 없어 시트에 기록하지 않았어요', true); return; }
     if (!getSheetUrl()) {
       setSheetStatus('⚠️ 이 화면에는 구글 시트 주소가 저장되어 있지 않아 기록하지 못했어요. 아래 ⚙️ 설정에서 주소를 저장해 주세요', true);
       document.getElementById('sheetDetails').open = true;
@@ -1563,7 +1566,7 @@
     };
     const arr = loadPending();
     arr.push(batch);
-    if (!savePending(arr)) {            // 폰 저장 공간이 모자라면 원본 사진은 빼고 다시 시도
+    if (!savePending(arr)) {
       batch.full = '';
       if (!savePending(arr)) { setSheetStatus('⚠️ 폰 저장 공간이 부족해 기록을 준비하지 못했어요', true); return; }
     }
@@ -1571,7 +1574,6 @@
     sendPending();
   }
 
-  // 시트 웹앱 주소가 맞는 모양인지 검사: 맞으면 '', 틀리면 이유를 돌려줌
   function checkSheetUrl(v) {
     if (/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(v)) return '';
     if (/\/macros\/library\//.test(v)) return '이 주소는 "라이브러리 주소"라서 쓸 수 없어요. Apps Script의 [배포 → 배포 관리]에서 "웹 앱" 주소(…/macros/s/…/exec)를 복사해 주세요.';
@@ -1579,7 +1581,6 @@
     return '웹앱 주소가 올바르지 않아요. https://script.google.com/macros/s/…/exec 모양이어야 해요.';
   }
 
-  // 연결 시험: 시트에 "연결시험" 줄을 한 줄 보내 보고 결과를 알려 줌
   async function testSheet() {
     const url = sheetUrlInput.value.trim() || getSheetUrl();
     if (!url) { alert('먼저 웹앱 주소를 붙여넣어 주세요.'); return; }
@@ -1592,7 +1593,6 @@
     else setSheetStatus('⚠️ 실패: ' + ((r.data && r.data.error) ? r.data.error : '인터넷 연결이나 주소를 확인해 주세요'), true);
   }
 
-  // 시트 연결 설정
   sheetUrlInput.value = getSheetUrl();
   document.getElementById('sheetUrlSaveBtn').addEventListener('click', () => {
     const v = sheetUrlInput.value.trim();
@@ -1617,7 +1617,7 @@
   refreshPendingUI();
   sendPending();
 
-  // ===== 사진 캡션에서 이름·전화번호·메모 읽기 =====
+  // ===== 사진 캡션에서 이름·전화번호 읽기 =====
   const captionInfo = document.getElementById('captionInfo');
 
   function formatPhoneDigits(raw) {
@@ -1627,8 +1627,6 @@
     return d;
   }
 
-  // 캡션 쓰는 방법: 사람은 쉼표(,)로 나누고 "이름 전화번호"로 씀 (전화번호는 생략 가능)
-  //   예) 김혜영 010-1234-5678, 박영희 010-9999-8888, 이철수
   function parseCaptionPeople(text) {
     const t = (text || '').replace(/[\r\n]+/g, ',').trim();
     if (!t) return [];
@@ -1649,8 +1647,8 @@
       const rest = trimName(chunk.slice(pos));
       if (rest) {
         const last = list[list.length - 1];
-        if (!last.name) last.name = rest;           // "010-1111-2222 이민수" 처럼 번호가 앞에 온 경우
-        else list.push({ name: rest, phone: '' });  // "김혜영 010-… 박영희" 처럼 뒤에 이름이 더 있는 경우
+        if (!last.name) last.name = rest;
+        else list.push({ name: rest, phone: '' });
       }
     }
     return list.filter(p => p.name || p.phone).slice(0, 6);
@@ -1659,13 +1657,11 @@
   function cleanPersonName(n) {
     return String(n || '').replace(/\s*님$/, '').replace(/\s+/g, ' ').trim();
   }
-  // 카드에 찍을 이름: "김혜영, 박영희 님"
   function getCardName() {
     const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
     if (names.length) return names.join(', ') + ' 님';
     return formatNameWithNim(nameInput.value.trim());
   }
-  // 저장 파일 이름에 쓸 이름: "김혜영_박영희"
   function getFileNameBase() {
     const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
     const base = names.length ? names.join('_') : cleanPersonName(nameInput.value);
@@ -1673,7 +1669,6 @@
     return safe || '미지정';
   }
 
-  // JPEG 머리 부분의 IPTC 캡션 / EXIF 이미지 설명 / XMP 설명을 찾아 글자를 돌려줌
   async function readCaptionFromFile(file) {
     try {
       const buf = await file.slice(0, 600000).arrayBuffer();
@@ -1747,7 +1742,7 @@
             if (rs(seg, 6) === 'Exif\0\0') parseExif(seg + 6);
             else if (rs(seg, 28).indexOf('http://ns.adobe.com/xap/1.0/') === 0) parseXmp(td.decode(new Uint8Array(buf, seg + 29, end - seg - 29)));
           } else if (mk === 0xED) parseIptc(seg, end);
-        } catch (e) { /* 이 조각은 건너뜀 */ }
+        } catch (e) {}
         p = end;
       }
       return got.iptc || got.exif || got.xmp || '';
@@ -1756,10 +1751,9 @@
     }
   }
 
-  // 사진을 고르면 캡션을 읽어 이름·전화번호를 자동으로 채움 (화면에는 입력칸이 없음)
   async function applyCaptionFromPhoto(file) {
     const text = await readCaptionFromFile(file);
-    if (currentImageFile !== file) return;   // 그 사이 다른 사진을 골랐다면 무시
+    if (currentImageFile !== file) return;
     const list = parseCaptionPeople(text);
     if (list.length) {
       people = list;
@@ -1768,7 +1762,7 @@
         list.map((p, i) => `${i + 1}. ${p.name || '-'} · ${p.phone || '전화번호 없음'}`).join('\n');
     } else {
       people = [];
-      captionInfo.textContent = '📝 이 사진에는 캡션이 없어요 (이름·번호가 없으면 시트에 기록되지 않아요)';
+      captionInfo.textContent = '📝 이 사진에는 캡션이 없어요 (이름·번호를 위에 직접 입력하시면 시트에 반영됩니다)';
     }
     captionInfo.style.display = 'block';
     requestRender();
