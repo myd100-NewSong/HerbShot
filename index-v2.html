@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2</title>
+  <title>화초전도 사진찍기 v2.4</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기">
+  <meta property="og:title" content="화초전도 사진찍기 v2.4">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -191,8 +191,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기</h2>
-  <div class="version-badge">ver 2.2 · 2026.10.30 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
+  <h2>🌿 화초전도 사진찍기 v2.4</h2>
+  <div class="version-badge">ver 2.4 · 2026.10.30 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -359,7 +359,7 @@
 
   let currentImageFile = null;
   let lastAutoName = '';
-  let people = [];   // 캡션에서 읽은 사람들 [{name, phone}] (한 사진에 여러 명 가능)
+  let people = [];
   let capturedDate = null;
   let currentFilter = 1;
   let currentFrameStyle = 'polaroid';
@@ -452,7 +452,6 @@
     if (currentImageFile) updatePreview();
   }
 
-  // 6. 간소화된 4종 필터 선택
   function setFilter(filterNum) {
     currentFilter = filterNum;
     const buttons = document.querySelectorAll('.filter-btn');
@@ -526,7 +525,6 @@
     if (!file) return;
     currentImageFile = file;
 
-    // 이전 사람 정보가 섞이지 않게 비움 (아래에서 파일명/캡션으로 다시 채움)
     nameInput.value = '';
     phoneInput.value = '';
     memoInput.value = '';
@@ -536,7 +534,6 @@
     let originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     let extractedName = originalName.split('_')[0];
 
-    // 파일명이 "한글이름_..." 형태일 때만 자동 입력 (IMG_1234 같은 카메라 파일명은 무시)
     const cleanedName = extractedName.replace(/[\s님]+/g, '').trim();
     const looksLikeName = /[가-힣]/.test(cleanedName) && cleanedName !== '미지정' && cleanedName.length < 15;
     const currentTyped = nameInput.value.trim();
@@ -610,7 +607,6 @@
 
   function updatePreview() { requestRender(); }
 
-  // 제스처 & 스티커 드래그 핸들링
   const pointers = new Map();
   let lastDist = 0, lastMid = null;
   let rawX = 0, rawY = 0;
@@ -632,7 +628,6 @@
     canvas.setPointerCapture(e.pointerId);
     const p = toCanvasXY(e);
 
-    // 스티커 터치 여부 판별 (역순 탐색)
     isDraggingSticker = false;
     for (let i = stickers.length - 1; i >= 0; i--) {
       const s = stickers[i];
@@ -649,7 +644,6 @@
       }
     }
 
-    // 빈 곳 클릭 시 스티커 선택 해제
     if (selectedStickerIdx >= 0) {
       selectedStickerIdx = -1;
       stickerTools.style.display = 'none';
@@ -763,12 +757,11 @@
     return `${month}/${day}/${year} ${hours}:${minutes}${ampm}`;
   }
 
-  // 6. 필터 프리셋 4종 (따뜻함, 시네마, 소프트, 비네팅)
   const FILTER_PRESETS = {
-    1: { contrast: 1.08, saturation: 1.15, brightness: 10, r: 1.12, g: 1.02, b: 0.82, fade: 0,  sepia: 0, vignette: 0.15 }, // 따뜻함
-    2: { contrast: 1.25, saturation: 0.80, brightness: -5, r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0, vignette: 0.35, teal: true }, // 시네마
-    3: { contrast: 0.88, saturation: 0.88, brightness: 25, r: 1.03, g: 1.00, b: 1.02, fade: 15, sepia: 0, vignette: 0 }, // 소프트
-    4: { contrast: 1.05, saturation: 1.00, brightness: 0,  r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0, vignette: 0.65 }  // 비네팅 중심
+    1: { contrast: 1.08, saturation: 1.15, brightness: 10, r: 1.12, g: 1.02, b: 0.82, fade: 0,  sepia: 0, vignette: 0.15 },
+    2: { contrast: 1.25, saturation: 0.80, brightness: -5, r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0, vignette: 0.35, teal: true },
+    3: { contrast: 0.88, saturation: 0.88, brightness: 25, r: 1.03, g: 1.00, b: 1.02, fade: 15, sepia: 0, vignette: 0 },
+    4: { contrast: 1.05, saturation: 1.00, brightness: 0,  r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0, vignette: 0.65 }
   };
 
   function applyPixelFilter(ctx, startX, startY, width, height, filterNum) {
@@ -864,7 +857,6 @@
     ctx.lineWidth = 1.5;
     ctx.strokeRect(34, 34, SIZE - 68, SIZE - 68);
 
-    // 좌상단 웨이브
     ctx.fillStyle = '#8f6838';
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -881,7 +873,6 @@
     ctx.closePath();
     ctx.fill();
 
-    // 우하단 웨이브
     ctx.fillStyle = '#7a542b';
     ctx.beginPath();
     ctx.moveTo(SIZE, SIZE);
@@ -1059,7 +1050,6 @@
   }
 
   function drawFilmStrip(nameText, messageText, filterNum, styleKey) {
-    // 1. 프레임 배경
     if (styleKey === 'golden') {
       drawGoldenDecorations();
     } else if (styleKey === 'hanji') {
@@ -1072,7 +1062,6 @@
       ctx.fillRect(0, 0, SIZE, SIZE);
     }
 
-    // 2. 사진 클리핑 및 렌더링
     ctx.save();
     ctx.beginPath();
     ctx.rect(AREA_X, AREA_Y, AREA_W, AREA_H);
@@ -1091,10 +1080,8 @@
     ctx.drawImage(srcCanvas, 0, 0, srcCanvas.width, srcCanvas.height, dx, dy, dw, dh);
     ctx.restore();
 
-    // 3. 필터 적용
     applyPixelFilter(ctx, AREA_X, AREA_Y, AREA_W, AREA_H, filterNum);
 
-    // 4. 스타일별 사진 테두리
     if (styleKey === 'polaroid') {
       drawPolaroidInnerShadow(AREA_X, AREA_Y, AREA_W, AREA_H);
     } else if (styleKey === 'golden') {
@@ -1107,7 +1094,6 @@
       ctx.strokeRect(AREA_X, AREA_Y, AREA_W, AREA_H);
     }
 
-    // 5. 텍스트 표시
     if (showText) {
       const cardX = AREA_X;
       const cardY = AREA_Y + AREA_H + 12;
@@ -1129,7 +1115,6 @@
         ctx.stroke();
       }
 
-      // 가운데 정렬 좌표 계산
       const textX = cardX + ((cardWidth - (styleKey === 'hanji' ? 60 : 0)) / 2);
 
       if (styleKey === 'film') {
@@ -1165,18 +1150,15 @@
         ctx.fillText(nameText, textX, cardY + (styleKey === 'film' ? 75 : 80));
       }
       fitFont(messageText, 64);
-      // 이름이 없으면 문구를 카드 가운데에 배치
       const msgY = hasName ? cardY + (styleKey === 'film' ? 165 : 170)
                            : cardY + (styleKey === 'film' ? 138 : 133);
       ctx.fillText(messageText, textX, msgY);
     }
 
-    // 6. 필름 타공
     if (styleKey === 'film') {
       drawFilmPerforations(SIZE, SIZE);
     }
 
-    // ✨ 7. 모든 프레임 공통: [왼쪽 상단] "GOD LOVES YOU" 각인
     ctx.save();
     ctx.font = 'bold 22px monospace';
     ctx.textAlign = 'left';
@@ -1197,10 +1179,7 @@
     }
     ctx.fillText(stampText, stampX, 48);
 
-    // 날짜는 오른쪽 정렬
     ctx.textAlign = 'right';
-
-    // 8. 모든 프레임 공통: [오른쪽 하단] 날짜·시간 각인
     const dateStr = getFilmStripDate(capturedDate || new Date());
     if (styleKey === 'film') {
       ctx.fillStyle = '#8e8e93';
@@ -1217,7 +1196,6 @@
     }
     ctx.restore();
 
-    // 9. 스티커 이모티콘 렌더링
     stickers.forEach((s, idx) => {
       ctx.save();
       ctx.font = `${s.size}px sans-serif`;
@@ -1234,7 +1212,6 @@
       ctx.restore();
     });
 
-    // 10. 가이드선
     if (showGuides) {
       const cx = AREA_X + AREA_W / 2, cy = AREA_Y + AREA_H / 2;
       const vOk = Math.abs(offX) <= 4, hOk = Math.abs(offY) <= 4;
@@ -1266,7 +1243,6 @@
     if (!srcCanvas) return;
 
     let fileNames = getFileNameBase();
-
     const targetDate = capturedDate || new Date();
     const fileDateStr = getFormattedFileNameDate(targetDate);
 
@@ -1324,7 +1300,6 @@
     stickers = [];
   });
 
-  // ===== 2. 문구 드롭박스 관리 =====
   const PHRASE_KEY = 'hwachoPhrases_v3';
   const DEFAULT_PHRASES = [
     '늘 행복하시고 건강하세요!',
@@ -1391,7 +1366,6 @@
 
   renderPhraseDropdown();
 
-  // ===== 문구 글자 수 표시 =====
   const MAX_MESSAGE_CHARS = 16;
   const charCount = document.getElementById('charCount');
 
@@ -1409,7 +1383,6 @@
   messageInput.addEventListener('input', updateCharCount);
   updateCharCount();
 
-  // ===== 하단 문구 표시 토글 =====
   function setShowText(on) {
     showText = on;
     document.querySelectorAll('.text-btn').forEach((btn, idx) => {
@@ -1432,7 +1405,6 @@
     requestRender();
   }
 
-  // ===== 만난 사람 기록 (구글 시트) =====
   const SHEET_URL_KEY = 'hwachoSheetUrl';
   const PENDING_KEY = 'hwachoPendingRecords';
   const sheetUrlInput = document.getElementById('sheetUrlInput');
@@ -1460,7 +1432,6 @@
     if (n > 0 && getSheetUrl() && !sendingNow) setSheetStatus(`📒 아직 시트에 못 보낸 기록이 ${n}건 있어요`, true);
   }
 
-  // 전화번호 입력 시 010-0000-0000 모양으로 자동 정리
   phoneInput.addEventListener('input', () => {
     const d = phoneInput.value.replace(/\D/g, '').slice(0, 11);
     let out = d;
@@ -1617,7 +1588,6 @@
   refreshPendingUI();
   sendPending();
 
-  // ===== 사진 캡션에서 이름·전화번호 읽기 =====
   const captionInfo = document.getElementById('captionInfo');
 
   function formatPhoneDigits(raw) {
