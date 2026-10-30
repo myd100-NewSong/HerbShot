@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.4.7</title>
+  <title>화초전도 사진찍기 v2.4.8</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.4.7">
+  <meta property="og:title" content="화초전도 사진찍기 v2.4.8">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -191,8 +191,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.4.7</h2>
-  <div class="version-badge">ver 2.4.7 · 2026.10.30 업데이트<br>사진 공유 텍스트 제거 · 구글 시트 자동 기록</div>
+  <h2>🌿 화초전도 사진찍기 v2.4.8</h2>
+  <div class="version-badge">ver 2.4.8 · 2026.10.30 업데이트<br>한글 캡션 인코딩 수정 · 구글 시트 자동 기록</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -519,6 +519,24 @@
     requestRender();
   }
 
+  // 🛠️ 파일 이름의 한글 인코딩 깨짐(모바일 디코딩 오류) 강제 보정 함수
+  function decodeKoreanFileName(fileName) {
+    try {
+      if (!fileName) return '';
+      // 만약 잘못 디코딩된 바이트 시퀀스가 포함되어 있다면 정돈
+      let decoded = decodeURIComponent(escape(fileName));
+      return decoded;
+    } catch (e) {
+      try {
+        // 브라우저 환경에 따라 TextDecoder 활용
+        const bytes = Uint8Array.from([...fileName].map(c => c.charCodeAt(0)));
+        const decodedUtf8 = new TextDecoder('utf-8').decode(bytes);
+        if (decodedUtf8 && !decodedUtf8.includes('')) return decodedUtf8;
+      } catch (err) {}
+      return fileName;
+    }
+  }
+
   function handleFileSelect(file) {
     if (!file) return;
     currentImageFile = file;
@@ -529,7 +547,10 @@
     people = [];
     captionInfo.style.display = 'none';
 
-    let originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+    // 파일 이름 한글 깨짐 방지 적용
+    let rawFileName = file.name;
+    let fixedFileName = decodeKoreanFileName(rawFileName);
+    let originalName = fixedFileName.substring(0, fixedFileName.lastIndexOf('.')) || fixedFileName;
     let extractedName = originalName.split('_')[0];
 
     const cleanedName = extractedName.replace(/[\s님]+/g, '').trim();
@@ -1254,7 +1275,6 @@
     const fileName = `${fileNames}_${fileDateStr}.jpg`;
     const file = new File([filmBlob], fileName, { type: 'image/jpeg' });
 
-    // 🛠️ [수정됨] 아이폰 공유 시 사진 위에 불필요한 텍스트("__ 님의 사진입니다")가 나타나지 않도록 text 속성을 완전히 제거했습니다.
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
@@ -1636,18 +1656,22 @@
     return safe || '미지정';
   }
 
+  // 🛠️ EXIF / 메타데이터 읽을 때 한글 인코딩 깨짐 방지 디코딩 보완
   async function readCaptionFromFile(file) {
     try {
       let exifText = "";
       if (window.EXIF) {
         await new Promise((resolve) => {
           EXIF.getData(file, function() {
-            exifText = EXIF.getTag(this, "ImageDescription") || EXIF.getTag(this, "UserComment") || EXIF.getTag(this, "DocumentName") || "";
+            let rawDesc = EXIF.getTag(this, "ImageDescription") || EXIF.getTag(this, "UserComment") || EXIF.getTag(this, "DocumentName") || "";
+            if (rawDesc) {
+              exifText = decodeKoreanFileName(typeof rawDesc === 'string' ? rawDesc : String(rawDesc));
+            }
             resolve();
           });
         });
       }
-      if (exifText && typeof exifText === 'string' && exifText.trim()) {
+      if (exifText && exifText.trim()) {
         return exifText.trim();
       }
 
@@ -1672,7 +1696,8 @@
             const size = count * (type === 3 ? 2 : 1);
             const valOff = size <= 4 ? e + 8 : start + g32(e + 8);
             if ((tag === 0x010E || tag === 0x9286) && valOff + count <= dv.byteLength) {
-              foundText = clean(td.decode(new Uint8Array(buf, valOff, count)));
+              let decodedBytes = td.decode(new Uint8Array(buf, valOff, count));
+              foundText = clean(decodeKoreanFileName(decodedBytes));
             }
           }
         };
