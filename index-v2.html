@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.4</title>
+  <title>화초전도 사진찍기 v2.4.5</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.4">
+  <meta property="og:title" content="화초전도 사진찍기 v2.4.5">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -30,7 +30,7 @@
     .input-group { display: flex; flex-direction: column; gap: 4px; }
     .input-label { font-size: 13px; font-weight: bold; color: #3a3a3c; }
 
-    /* 1. 입력창 높이를 슬림하게 조절 */
+    /* 입력창 스타일 */
     input[type="text"], input[type="tel"] { 
       width: 100%; 
       padding: 9px 12px; 
@@ -58,7 +58,7 @@
       font-size: 15px !important;
     }
 
-    /* 2. 문구 드롭다운 스타일 */
+    /* 문구 드롭다운 스타일 */
     .dropdown-row { display: flex; gap: 6px; }
     .phrase-select {
       flex: 1;
@@ -83,7 +83,7 @@
       white-space: nowrap;
     }
 
-    /* 공통 토글 버튼 그룹 */
+    /* 토글 버튼 그룹 */
     .option-label { font-size: 13px; font-weight: bold; color: #3a3a3c; margin-top: 2px; }
     .option-group { display: flex; gap: 4px; width: 100%; }
     .option-btn { 
@@ -105,7 +105,7 @@
       border-color: #007aff; 
     }
 
-    /* 4. 앨범 선택 버튼 (단독 전체 배치) */
+    /* 앨범 선택 버튼 */
     .btn-row { display: flex; width: 100%; margin: 2px 0; }
     .btn-full { 
       width: 100%;
@@ -123,7 +123,7 @@
     .btn-gallery { background-color: #5856d6; }
     .file-input { display: none; }
 
-    /* 1:1 정사각형 미리보기 박스 */
+    /* 미리보기 박스 */
     .preview-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; display: none; background: #e5e5ea; text-align: center; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     #polaroidCanvas { width: 100%; height: 100%; display: block; touch-action: none; -webkit-user-select: none; user-select: none; cursor: grab; }
 
@@ -136,7 +136,7 @@
     .zoom-row { display: flex; align-items: center; gap: 8px; font-size: 16px; }
     .zoom-row input[type="range"] { flex: 1; }
 
-    /* 3. 이모티콘 스티커 패널 (사진 아래 위치) */
+    /* 이모티콘 패널 */
     .sticker-panel { display: none; flex-direction: column; gap: 6px; background: #ffffff; border-radius: 10px; padding: 10px; }
     .emoji-bar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; -webkit-overflow-scrolling: touch; }
     .emoji-btn {
@@ -152,7 +152,7 @@
     .sticker-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .del-sticker-btn { padding: 5px 10px; font-size: 11.5px; font-weight: bold; background: #ff3b30; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; }
 
-    /* 사진 크기·위치 조절 패널 */
+    /* 위치 조절 패널 */
     .adjust-panel { display: none; flex-direction: column; gap: 6px; background: #ffffff; border-radius: 10px; padding: 10px; }
     .adjust-hint { font-size: 11.5px; color: #6c6c70; text-align: center; line-height: 1.3; }
     .adjust-btns { display: flex; gap: 6px; }
@@ -172,7 +172,7 @@
       cursor: pointer;
     }
 
-    /* 구글 시트 기록 */
+    /* 구글 시트 상태 영역 */
     .version-badge { text-align: center; font-size: 11.5px; color: #8e8e93; line-height: 1.45; margin-top: -4px; }
     .caption-info { white-space: pre-line; display: none; font-size: 12.5px; background: #ffffff; border-radius: 10px; padding: 8px 10px; color: #3a3a3c; line-height: 1.4; word-break: break-all; }
     .sheet-status { font-size: 12.5px; color: #3a3a3c; text-align: center; min-height: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
@@ -191,8 +191,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.4</h2>
-  <div class="version-badge">ver 2.4 · 2026.10.30 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
+  <h2>🌿 화초전도 사진찍기 v2.4.5</h2>
+  <div class="version-badge">ver 2.4.5 · 2026.10.30 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -205,12 +205,11 @@
     <input type="tel" id="phoneInput" placeholder="010-0000-0000">
   </div>
 
-  <!-- 메모 보관용 (필요 시 숨김) -->
   <div style="display:none;">
     <input type="text" id="memoInput">
   </div>
 
-  <!-- 1 & 2. 문구 입력 및 드롭다운 선택 영역 -->
+  <!-- 문구 입력 및 드롭다운 -->
   <div class="input-group">
     <div class="label-row">
       <label class="input-label">문구</label>
@@ -222,7 +221,6 @@
     <div class="input-group" id="messageGroup">
       <input type="text" id="messageInput" value="늘 행복하시고 건강하세요!" placeholder="늘 행복하시고 건강하세요!">
       
-      <!-- 문구 드롭박스 & 저장/삭제 -->
       <div class="dropdown-row">
         <select class="phrase-select" id="phraseSelect" onchange="onSelectPhrase(this.value)">
           <option value="" disabled selected>📜 자주 쓰는 문구 선택하기</option>
@@ -235,7 +233,7 @@
     </div>
   </div>
 
-  <!-- 앨범 선택 버튼만 단독 표시 -->
+  <!-- 앨범 선택 버튼 -->
   <div class="btn-row">
     <label for="gallery-input" class="btn-full btn-gallery">🖼️ 앨범에서 사진 선택</label>
     <input type="file" id="gallery-input" class="file-input" accept="image/*">
@@ -243,7 +241,7 @@
 
   <div class="caption-info" id="captionInfo"></div>
 
-  <!-- 프레임 스타일 선택 (4종) -->
+  <!-- 프레임 스타일 선택 -->
   <div class="option-label">🖼️ 프레임 스타일 선택</div>
   <div class="option-group">
     <button type="button" class="option-btn style-btn active" onclick="setFrameStyle('polaroid')">🤍 폴라로이드</button>
@@ -252,7 +250,7 @@
     <button type="button" class="option-btn style-btn" onclick="setFrameStyle('hanji')">🌸 한지배경</button>
   </div>
 
-  <!-- 6. 필터 선택 영역 (따뜻함, 시네마, 소프트, 비네팅 4종) -->
+  <!-- 필터 선택 -->
   <div class="option-label">🎨 필름 감성 필터</div>
   <div class="option-group">
     <button type="button" class="option-btn filter-btn active" onclick="setFilter(1)">1.따뜻함</button>
@@ -261,12 +259,12 @@
     <button type="button" class="option-btn filter-btn" onclick="setFilter(4)">4.비네팅</button>
   </div>
 
-  <!-- 1:1 비율 미리보기 (저장될 사진) -->
+  <!-- 미리보기 -->
   <div class="preview-box" id="previewBox">
     <canvas id="polaroidCanvas"></canvas>
   </div>
 
-  <!-- 글자 크기 조절 패널 -->
+  <!-- 글자 크기 패널 -->
   <div class="fontsize-panel" id="fontSizePanel">
     <div class="fontsize-header">
       <span class="option-label">🔤 문구 글자 크기</span>
@@ -283,7 +281,7 @@
     </div>
   </div>
 
-  <!-- 3. 사진 아래 배치된 이모티콘 스티커 패널 (터치로 위치/크기 조절) -->
+  <!-- 스티커 패널 -->
   <div class="sticker-panel" id="stickerPanel">
     <div class="option-label">✨ 스티커 이모티콘 추가 (사진 위에서 드래그 이동)</div>
     <div class="emoji-bar">
@@ -304,7 +302,7 @@
     </div>
   </div>
 
-  <!-- 사진 크기·위치 조절 -->
+  <!-- 크기/위치 조절 패널 -->
   <div class="adjust-panel" id="adjustPanel">
     <div class="adjust-hint">☝️ 사진을 드래그하면 이동 | ✌️ 두 손가락 핀치로 확대·축소</div>
     <div class="zoom-row">
@@ -365,7 +363,7 @@
   let currentFrameStyle = 'polaroid';
   let textScale = 1.0;
 
-  // ===== 스티커 상태 관리 =====
+  // 스티커 상태 관리
   let stickers = [];
   let selectedStickerIdx = -1;
   let isDraggingSticker = false;
@@ -461,7 +459,7 @@
     if (currentImageFile) updatePreview();
   }
 
-  // ===== 사진 배치 상태 =====
+  // 사진 배치 설정
   const SIZE = 1200;
   const AREA_X = 56, AREA_Y = 64, AREA_W = 1088;
   const AREA_H_TEXT = 824;
@@ -1569,175 +1567,3 @@
     const v = sheetUrlInput.value.trim();
     const bad = checkSheetUrl(v);
     if (bad) { alert(bad); return; }
-    try { localStorage.setItem(SHEET_URL_KEY, v); } catch (e) {}
-    setSheetStatus('📒 시트 연결 주소를 저장했어요', false);
-    refreshPendingUI();
-    sendPending();
-  });
-  document.getElementById('sheetTestBtn').addEventListener('click', testSheet);
-  document.getElementById('sheetUrlClearBtn').addEventListener('click', () => {
-    if (!confirm('시트 연결을 끊을까요? (아직 못 보낸 기록은 그대로 남아 있어요)')) return;
-    try { localStorage.removeItem(SHEET_URL_KEY); } catch (e) {}
-    sheetUrlInput.value = '';
-    setSheetStatus('', false);
-    refreshPendingUI();
-  });
-  resendBtn.addEventListener('click', sendPending);
-  window.addEventListener('online', sendPending);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) sendPending(); });
-  refreshPendingUI();
-  sendPending();
-
-  const captionInfo = document.getElementById('captionInfo');
-
-  function formatPhoneDigits(raw) {
-    const d = String(raw).replace(/\D/g, '').slice(0, 11);
-    if (d.length >= 8) return d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4);
-    if (d.length >= 4) return d.slice(0, 3) + '-' + d.slice(3);
-    return d;
-  }
-
-  function parseCaptionPeople(text) {
-    const t = (text || '').replace(/[\r\n]+/g, ',').trim();
-    if (!t) return [];
-    const chunks = t.split(/[,，、\/／;；&＆+＋|]+/);
-    const phoneRe = /01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g;
-    const trimName = (n) => n.replace(/^[\-\s·]+|[\-\s·]+$/g, '').trim();
-    const list = [];
-    for (const raw of chunks) {
-      const chunk = raw.replace(/\s+/g, ' ').trim();
-      if (!chunk) continue;
-      const ms = [...chunk.matchAll(phoneRe)];
-      if (!ms.length) { list.push({ name: trimName(chunk), phone: '' }); continue; }
-      let pos = 0;
-      ms.forEach((m) => {
-        list.push({ name: trimName(chunk.slice(pos, m.index)), phone: formatPhoneDigits(m[0]) });
-        pos = m.index + m[0].length;
-      });
-      const rest = trimName(chunk.slice(pos));
-      if (rest) {
-        const last = list[list.length - 1];
-        if (!last.name) last.name = rest;
-        else list.push({ name: rest, phone: '' });
-      }
-    }
-    return list.filter(p => p.name || p.phone).slice(0, 6);
-  }
-
-  function cleanPersonName(n) {
-    return String(n || '').replace(/\s*님$/, '').replace(/\s+/g, ' ').trim();
-  }
-  function getCardName() {
-    const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
-    if (names.length) return names.join(', ') + ' 님';
-    return formatNameWithNim(nameInput.value.trim());
-  }
-  function getFileNameBase() {
-    const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
-    const base = names.length ? names.join('_') : cleanPersonName(nameInput.value);
-    const safe = base.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/^_+|_+$/g, '');
-    return safe || '미지정';
-  }
-
-  async function readCaptionFromFile(file) {
-    try {
-      const buf = await file.slice(0, 600000).arrayBuffer();
-      const dv = new DataView(buf);
-      if (dv.getUint16(0) !== 0xFFD8) return '';
-      const td = new TextDecoder('utf-8');
-      const rs = (off, len) => { let s = ''; for (let i = 0; i < len; i++) s += String.fromCharCode(dv.getUint8(off + i)); return s; };
-      const clean = (t) => t.replace(/\u0000/g, '').trim();
-      const got = { iptc: '', exif: '', xmp: '' };
-
-      const parseExif = (start) => {
-        const le = dv.getUint16(start) === 0x4949;
-        const g16 = (o) => dv.getUint16(o, le), g32 = (o) => dv.getUint32(o, le);
-        const readIFD = (off, depth) => {
-          const n = g16(off);
-          for (let i = 0; i < n; i++) {
-            const e = off + 2 + i * 12;
-            const tag = g16(e), type = g16(e + 2), count = g32(e + 4);
-            const size = count * (type === 3 ? 2 : 1);
-            const valOff = size <= 4 ? e + 8 : start + g32(e + 8);
-            if (tag === 0x010E && (type === 2 || type === 7)) {
-              got.exif = clean(td.decode(new Uint8Array(buf, valOff, count)));
-            } else if (tag === 0x8769 && depth < 2) {
-              readIFD(start + g32(e + 8), depth + 1);
-            }
-          }
-        };
-        readIFD(start + g32(start + 4), 0);
-      };
-
-      const parseXmp = (xml) => {
-        const m = xml.match(/<dc:description>[\s\S]*?<\/dc:description>/);
-        if (m) {
-          const li = m[0].match(/<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/);
-          got.xmp = clean(li ? li[1] : m[0].replace(/<[^>]+>/g, ''));
-        }
-      };
-
-      const parseIptc = (seg, segEnd) => {
-        let p = seg + 14;
-        while (p + 12 < segEnd) {
-          if (rs(p, 4) !== '8BIM') break;
-          const id = dv.getUint16(p + 4);
-          let q = p + 6;
-          const nl = dv.getUint8(q); q += 1 + nl; if ((1 + nl) % 2) q++;
-          const len = dv.getUint32(q); q += 4;
-          if (id === 0x0404) {
-            let r = q;
-            while (r + 5 <= q + len) {
-              if (dv.getUint8(r) !== 0x1C) break;
-              const rec = dv.getUint8(r + 1), ds = dv.getUint8(r + 2), l = dv.getUint16(r + 3);
-              if (rec === 2 && ds === 120) got.iptc = clean(td.decode(new Uint8Array(buf, r + 5, l)));
-              r += 5 + l;
-            }
-          }
-          q += len; if (len % 2) q++;
-          p = q;
-        }
-      };
-
-      let p = 2;
-      while (p < dv.byteLength - 4) {
-        if (dv.getUint8(p) !== 0xFF) { p++; continue; }
-        const mk = dv.getUint8(p + 1);
-        if (mk === 0xDA || mk === 0xD9) break;
-        if (mk === 0x00 || mk === 0xFF || (mk >= 0xD0 && mk <= 0xD7) || mk === 0x01) { p += 2; continue; }
-        const len = dv.getUint16(p + 2), seg = p + 4, end = p + 2 + len;
-        if (end > dv.byteLength) break;
-        try {
-          if (mk === 0xE1) {
-            if (rs(seg, 6) === 'Exif\0\0') parseExif(seg + 6);
-            else if (rs(seg, 28).indexOf('http://ns.adobe.com/xap/1.0/') === 0) parseXmp(td.decode(new Uint8Array(buf, seg + 29, end - seg - 29)));
-          } else if (mk === 0xED) parseIptc(seg, end);
-        } catch (e) {}
-        p = end;
-      }
-      return got.iptc || got.exif || got.xmp || '';
-    } catch (e) {
-      return '';
-    }
-  }
-
-  async function applyCaptionFromPhoto(file) {
-    const text = await readCaptionFromFile(file);
-    if (currentImageFile !== file) return;
-    const list = parseCaptionPeople(text);
-    if (list.length) {
-      people = list;
-      nameInput.value = list.map(p => p.name).filter(Boolean).join(', ');
-      captionInfo.textContent = `📝 캡션 인식 (${list.length}명)\n` +
-        list.map((p, i) => `${i + 1}. ${p.name || '-'} · ${p.phone || '전화번호 없음'}`).join('\n');
-    } else {
-      people = [];
-      captionInfo.textContent = '📝 이 사진에는 캡션이 없어요 (이름·번호를 위에 직접 입력하시면 시트에 반영됩니다)';
-    }
-    captionInfo.style.display = 'block';
-    requestRender();
-  }
-</script>
-
-</body>
-</html>
