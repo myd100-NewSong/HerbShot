@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.4.5</title>
+  <title>화초전도 사진찍기 v2.4.6</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.4.5">
+  <meta property="og:title" content="화초전도 사진찍기 v2.4.6">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -191,8 +191,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.4.5</h2>
-  <div class="version-badge">ver 2.4.5 · 2026.10.30 업데이트<br>사진 캡션 인식 · 구글 시트 자동 기록 · 시트에 사진 저장</div>
+  <h2>🌿 화초전도 사진찍기 v2.4.6</h2>
+  <div class="version-badge">ver 2.4.6 · 2026.10.30 업데이트<br>사진 캡션 인식 강화 · 구글 시트 자동 기록</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -529,6 +529,7 @@
     people = [];
     captionInfo.style.display = 'none';
 
+    // 1순위: 파일 이름(파일명 자체에 이름/번호가 포함된 경우 우선 추출)
     let originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     let extractedName = originalName.split('_')[0];
 
@@ -1567,3 +1568,159 @@
     const v = sheetUrlInput.value.trim();
     const bad = checkSheetUrl(v);
     if (bad) { alert(bad); return; }
+    try { localStorage.setItem(SHEET_URL_KEY, v); } catch (e) {}
+    setSheetStatus('📒 시트 연결 주소를 저장했어요', false);
+    refreshPendingUI();
+    sendPending();
+  });
+  document.getElementById('sheetTestBtn').addEventListener('click', testSheet);
+  document.getElementById('sheetUrlClearBtn').addEventListener('click', () => {
+    if (!confirm('시트 연결을 끊을까요? (아직 못 보낸 기록은 그대로 남아 있어요)')) return;
+    try { localStorage.removeItem(SHEET_URL_KEY); } catch (e) {}
+    sheetUrlInput.value = '';
+    setSheetStatus('', false);
+    refreshPendingUI();
+  });
+  resendBtn.addEventListener('click', sendPending);
+  window.addEventListener('online', sendPending);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) sendPending(); });
+  refreshPendingUI();
+  sendPending();
+
+  const captionInfo = document.getElementById('captionInfo');
+
+  function formatPhoneDigits(raw) {
+    const d = String(raw).replace(/\D/g, '').slice(0, 11);
+    if (d.length >= 8) return d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4);
+    if (d.length >= 4) return d.slice(0, 3) + '-' + d.slice(3);
+    return d;
+  }
+
+  function parseCaptionPeople(text) {
+    const t = (text || '').replace(/[\r\n]+/g, ',').trim();
+    if (!t) return [];
+    const chunks = t.split(/[,，、\/／;；&＆+＋|]+/);
+    const phoneRe = /01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g;
+    const trimName = (n) => n.replace(/^[\-\s·]+|[\-\s·]+$/g, '').trim();
+    const list = [];
+    for (const raw of chunks) {
+      const chunk = raw.replace(/\s+/g, ' ').trim();
+      if (!chunk) continue;
+      const ms = [...chunk.matchAll(phoneRe)];
+      if (!ms.length) { list.push({ name: trimName(chunk), phone: '' }); continue; }
+      let pos = 0;
+      ms.forEach((m) => {
+        list.push({ name: trimName(chunk.slice(pos, m.index)), phone: formatPhoneDigits(m[0]) });
+        pos = m.index + m[0].length;
+      });
+      const rest = trimName(chunk.slice(pos));
+      if (rest) {
+        const last = list[list.length - 1];
+        if (!last.name) last.name = rest;
+        else list.push({ name: rest, phone: '' });
+      }
+    }
+    return list.filter(p => p.name || p.phone).slice(0, 6);
+  }
+
+  function cleanPersonName(n) {
+    return String(n || '').replace(/\s*님$/, '').replace(/\s+/g, ' ').trim();
+  }
+  function getCardName() {
+    const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
+    if (names.length) return names.join(', ') + ' 님';
+    return formatNameWithNim(nameInput.value.trim());
+  }
+  function getFileNameBase() {
+    const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
+    const base = names.length ? names.join('_') : cleanPersonName(nameInput.value);
+    const safe = base.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/^_+|_+$/g, '');
+    return safe || '미지정';
+  }
+
+  // 🛠️ 파일 메타데이터(Exif 이미지 설명, 파일명, EXIF UserComment 등) 통합 추출 기능 개선
+  async function readCaptionFromFile(file) {
+    try {
+      // 1순위: EXIF-js 라이브러리를 통한 EXIF 태그(이미지 설명 0x010E 등) 읽기
+      let exifText = "";
+      if (window.EXIF) {
+        await new Promise((resolve) => {
+          EXIF.getData(file, function() {
+            exifText = EXIF.getTag(this, "ImageDescription") || EXIF.getTag(this, "UserComment") || EXIF.getTag(this, "DocumentName") || "";
+            resolve();
+          });
+        });
+      }
+      if (exifText && typeof exifText === 'string' && exifText.trim()) {
+        return exifText.trim();
+      }
+
+      // 2순위: 바이너리 직접 파싱 (JPEG 구조 내 EXIF / IPTC / XMP 블록 탐색)
+      const buf = await file.slice(0, 65536).arrayBuffer();
+      const dv = new DataView(buf);
+      if (dv.getUint16(0) !== 0xFFD8) return '';
+      const td = new TextDecoder('utf-8');
+      const rs = (off, len) => { let s = ''; for (let i = 0; i < len; i++) s += String.fromCharCode(dv.getUint8(off + i)); return s; };
+      const clean = (t) => t.replace(/\u0000/g, '').trim();
+      let foundText = "";
+
+      const parseExif = (start) => {
+        const le = dv.getUint16(start) === 0x4949;
+        const g16 = (o) => dv.getUint16(o, le), g32 = (o) => dv.getUint32(o, le);
+        const readIFD = (off, depth) => {
+          if (off + 2 > dv.byteLength || depth > 2) return;
+          const n = g16(off);
+          for (let i = 0; i < n; i++) {
+            const e = off + 2 + i * 12;
+            if (e + 12 > dv.byteLength) break;
+            const tag = g16(e), type = g16(e + 2), count = g32(e + 4);
+            const size = count * (type === 3 ? 2 : 1);
+            const valOff = size <= 4 ? e + 8 : start + g32(e + 8);
+            if ((tag === 0x010E || tag === 0x9286) && valOff + count <= dv.byteLength) {
+              foundText = clean(td.decode(new Uint8Array(buf, valOff, count)));
+            }
+          }
+        };
+        try { readIFD(start + g32(start + 4), 0); } catch(e) {}
+      };
+
+      let p = 2;
+      while (p < dv.byteLength - 4) {
+        if (dv.getUint8(p) !== 0xFF) { p++; continue; }
+        const mk = dv.getUint8(p + 1);
+        if (mk === 0xDA || mk === 0xD9) break;
+        if (mk === 0x00 || mk === 0xFF || (mk >= 0xD0 && mk <= 0xD7) || mk === 0x01) { p += 2; continue; }
+        const len = dv.getUint16(p + 2), seg = p + 4, end = p + 2 + len;
+        if (end > dv.byteLength) break;
+        if (mk === 0xE1 && rs(seg, 6) === 'Exif\0\0') {
+          parseExif(seg + 6);
+          if (foundText) break;
+        }
+        p = end;
+      }
+      return foundText || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  async function applyCaptionFromPhoto(file) {
+    const text = await readCaptionFromFile(file);
+    if (currentImageFile !== file) return;
+    const list = parseCaptionPeople(text);
+    if (list.length) {
+      people = list;
+      nameInput.value = list.map(p => p.name).filter(Boolean).join(', ');
+      captionInfo.textContent = `📝 캡션 인식 (${list.length}명)\n` +
+        list.map((p, i) => `${i + 1}. ${p.name || '-'} · ${p.phone || '전화번호 없음'}`).join('\n');
+    } else {
+      people = [];
+      captionInfo.textContent = '📝 이 사진에는 캡션이 없어요 (이름·번호를 위에 직접 입력하시면 시트에 반영됩니다)';
+    }
+    captionInfo.style.display = 'block';
+    requestRender();
+  }
+</script>
+
+</body>
+</html>
