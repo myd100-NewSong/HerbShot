@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.0.3</title>
+  <title>화초전도 사진찍기 v2.0.6</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.0.3">
+  <meta property="og:title" content="화초전도 사진찍기 v2.0.6">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -172,7 +172,7 @@
       cursor: pointer;
     }
 
-    /* 구글 시트 상태 영역 */
+    /* 구글 시트 상태 영역 및 버전 표시 */
     .version-badge { text-align: center; font-size: 11.5px; color: #8e8e93; line-height: 1.45; margin-top: -4px; }
     .caption-info { white-space: pre-line; display: none; font-size: 12.5px; background: #ffffff; border-radius: 10px; padding: 8px 10px; color: #3a3a3c; line-height: 1.4; word-break: break-all; }
     .sheet-status { font-size: 12.5px; color: #3a3a3c; text-align: center; min-height: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
@@ -191,8 +191,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.0.3</h2>
-  <div class="version-badge">ver 2.0.3 · 2026.10.30 업데이트<br>촬영 날짜 및 시간 시트 전송</div>
+  <h2>🌿 화초전도 사진찍기 v2.0.6</h2>
+  <div class="version-badge">ver 2.0.6 · 촬영일시 및 E열/F열 연동 완료</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -1457,7 +1457,6 @@
     return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
   }
 
-  // 🛠️ 사진 촬영일시(YYYY-MM-DD HH:mm:ss) 포맷 함수
   function formatPhotoDateTime(dateObj) {
     const t = dateObj || new Date();
     const y = t.getFullYear();
@@ -1552,7 +1551,6 @@
       return;
     }
     
-    // 🛠️ 촬영 날짜 및 시간을 photoDate 속성으로 전송
     const batch = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
       date: todayStr(),
