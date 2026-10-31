@@ -3,21 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.0.8</title>
+  <title>화초전도 사진찍기 v2.1.0</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
-  <!-- 링크 공유 미리보기 -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.0.8">
+  <meta property="og:title" content="화초전도 사진찍기 v2.1.0">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
   <meta property="og:image:width" content="512">
   <meta property="og:image:height" content="512">
-  <!-- Exif 데이터를 읽기 위한 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-  
-  <!-- 네이버 클로바 공식 나눔손글씨 성실체 웹폰트 URL -->
   <link href="https://hangeul.pstatic.net/hangeul_static/css/NanumSeongSirCe.css" rel="stylesheet">
   
   <style>
@@ -30,7 +26,6 @@
     .input-group { display: flex; flex-direction: column; gap: 4px; }
     .input-label { font-size: 13px; font-weight: bold; color: #3a3a3c; }
 
-    /* 입력창 스타일 */
     input[type="text"], input[type="tel"] { 
       width: 100%; 
       padding: 9px 12px; 
@@ -58,7 +53,6 @@
       font-size: 15px !important;
     }
 
-    /* 문구 드롭다운 스타일 */
     .dropdown-row { display: flex; gap: 6px; }
     .phrase-select {
       flex: 1;
@@ -83,7 +77,6 @@
       white-space: nowrap;
     }
 
-    /* 토글 버튼 그룹 */
     .option-label { font-size: 13px; font-weight: bold; color: #3a3a3c; margin-top: 2px; }
     .option-group { display: flex; gap: 4px; width: 100%; }
     .option-btn { 
@@ -105,7 +98,33 @@
       border-color: #007aff; 
     }
 
-    /* 앨범 선택 버튼 */
+    /* 필터 스크롤 바 */
+    .filter-scroll-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-scroll-bar::-webkit-scrollbar { display: none; }
+    .filter-scroll-btn {
+      flex: 0 0 auto;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: bold;
+      border: 1.5px solid #c7c7cc;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #3a3a3c;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .filter-scroll-btn.active {
+      background-color: #007aff;
+      color: #ffffff;
+      border-color: #007aff;
+    }
+
     .btn-row { display: flex; width: 100%; margin: 2px 0; }
     .btn-full { 
       width: 100%;
@@ -123,11 +142,9 @@
     .btn-gallery { background-color: #5856d6; }
     .file-input { display: none; }
 
-    /* 미리보기 박스 */
     .preview-box { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; display: none; background: #e5e5ea; text-align: center; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     #polaroidCanvas { width: 100%; height: 100%; display: block; touch-action: none; -webkit-user-select: none; user-select: none; cursor: grab; }
 
-    /* 글자 크기 조절 패널 */
     .fontsize-panel { display: none; flex-direction: column; gap: 6px; background: #ffffff; border-radius: 10px; padding: 10px; }
     .fontsize-header { display: flex; justify-content: space-between; align-items: center; }
     .fontsize-btns { display: flex; gap: 4px; }
@@ -136,7 +153,6 @@
     .zoom-row { display: flex; align-items: center; gap: 8px; font-size: 16px; }
     .zoom-row input[type="range"] { flex: 1; }
 
-    /* 이모티콘 패널 */
     .sticker-panel { display: none; flex-direction: column; gap: 6px; background: #ffffff; border-radius: 10px; padding: 10px; }
     .emoji-bar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0; -webkit-overflow-scrolling: touch; }
     .emoji-btn {
@@ -152,7 +168,6 @@
     .sticker-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .del-sticker-btn { padding: 5px 10px; font-size: 11.5px; font-weight: bold; background: #ff3b30; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; }
 
-    /* 위치 조절 패널 */
     .adjust-panel { display: none; flex-direction: column; gap: 6px; background: #ffffff; border-radius: 10px; padding: 10px; }
     .adjust-hint { font-size: 11.5px; color: #6c6c70; text-align: center; line-height: 1.3; }
     .adjust-btns { display: flex; gap: 6px; }
@@ -172,7 +187,6 @@
       cursor: pointer;
     }
 
-    /* 구글 시트 상태 영역 및 버전 표시 */
     .version-badge { text-align: center; font-size: 11.5px; color: #8e8e93; line-height: 1.45; margin-top: -4px; }
     .caption-info { white-space: pre-line; display: none; font-size: 12.5px; background: #ffffff; border-radius: 10px; padding: 8px 10px; color: #3a3a3c; line-height: 1.4; word-break: break-all; }
     .sheet-status { font-size: 12.5px; color: #3a3a3c; text-align: center; min-height: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
@@ -191,17 +205,17 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.0.8</h2>
-  <div class="version-badge">ver 2.0.8 · 열 밀림 현상 방지 완료</div>
+  <h2>🌿 화초전도 사진찍기 v2.1.0</h2>
+  <div class="version-badge">ver 2.1.0 · 이름 즉시 수정 & 아이폰 9종 필터 탑재</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
-    <label class="input-label" for="nameInput">👤 대상자 이름 (사진 캡션 없을 때 사용)</label>
+    <label class="input-label" for="nameInput">👤 대상자 이름 (수정 시 바로 반영됩니다)</label>
     <input type="text" id="nameInput" placeholder="예: 홍길동">
   </div>
 
   <div class="input-group">
-    <label class="input-label" for="phoneInput">📞 전화번호 (사진 캡션 없을 때 사용)</label>
+    <label class="input-label" for="phoneInput">📞 전화번호</label>
     <input type="tel" id="phoneInput" placeholder="010-0000-0000">
   </div>
 
@@ -250,13 +264,18 @@
     <button type="button" class="option-btn style-btn" onclick="setFrameStyle('hanji')">🌸 한지배경</button>
   </div>
 
-  <!-- 필터 선택 -->
-  <div class="option-label">🎨 필름 감성 필터</div>
-  <div class="option-group">
-    <button type="button" class="option-btn filter-btn active" onclick="setFilter(1)">1.따뜻함</button>
-    <button type="button" class="option-btn filter-btn" onclick="setFilter(2)">2.시네마</button>
-    <button type="button" class="option-btn filter-btn" onclick="setFilter(3)">3.소프트</button>
-    <button type="button" class="option-btn filter-btn" onclick="setFilter(4)">4.비네팅</button>
+  <!-- 아이폰 9종 필터 선택 바 -->
+  <div class="option-label">🎨 아이폰 감성 필터 (9종)</div>
+  <div class="filter-scroll-bar">
+    <button type="button" class="filter-scroll-btn active" onclick="setFilter(1)">1.선명하게</button>
+    <button type="button" class="filter-scroll-btn" onclick="setFilter(2)">2.선명(따뜻)</button>
+    <button type="button" class="filter-scroll-btn" onclick="setFilter(3)">3.선명(차갑)</button>
+    <button type="button" class="filter-scroll-btn" onclick="setFilter(4)">4.드라마틱</button>
+    <button type="button" class="filter-scroll-btn" onclick="setFilter(5)">5.드라마(따뜻)</button>
+    <button type="button" class="filter-scroll-btn" onclick="setFilter(6)">6.드라마(차갑)</button>
+    <button type="button" class="filter-scroll-btn" onclick="setFilter(7)">7.모노</button>
+    <button type="button" class="filter-scroll-btn" onclick="setFilter(8)">8.실버톤</button>
+    <button type="button" class="filter-scroll-btn" onclick="setFilter(9)">9.느와르</button>
   </div>
 
   <!-- 미리보기 -->
@@ -452,7 +471,7 @@
 
   function setFilter(filterNum) {
     currentFilter = filterNum;
-    const buttons = document.querySelectorAll('.filter-btn');
+    const buttons = document.querySelectorAll('.filter-scroll-btn');
     buttons.forEach((btn, idx) => {
       btn.classList.toggle('active', idx + 1 === filterNum);
     });
@@ -737,7 +756,21 @@
 
   galleryInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
 
-  nameInput.addEventListener('input', () => { if (currentImageFile) updatePreview(); });
+  // 사용자가 화면에서 이름을 수정하면 people 동기화 및 렌더링 즉시 반영
+  nameInput.addEventListener('input', () => { 
+    if (people.length > 0) {
+      const parts = nameInput.value.split(',').map(s => s.trim());
+      parts.forEach((pName, idx) => {
+        if (people[idx]) people[idx].name = pName;
+        else people.push({ name: pName, phone: '' });
+      });
+      if (parts.length < people.length) {
+        people = people.slice(0, parts.length);
+      }
+    }
+    if (currentImageFile) updatePreview(); 
+  });
+  
   messageInput.addEventListener('input', () => { if (currentImageFile) updatePreview(); });
 
   function getFormattedFileNameDate(dateObj) {
@@ -772,11 +805,28 @@
     return `${month}/${day}/${year} ${hours}:${minutes}${ampm}`;
   }
 
+  // ==========================================
+  // 아이폰 기본 카메라 9종 내장 필터 프리셋
+  // 1: 선명하게 (Vivid)
+  // 2: 선명하게 따뜻한 톤 (Vivid Warm)
+  // 3: 선명하게 차가운 톤 (Vivid Cool)
+  // 4: 드라마틱 (Dramatic)
+  // 5: 드라마틱 따뜻한 톤 (Dramatic Warm)
+  // 6: 드라마틱 차가운 톤 (Dramatic Cool)
+  // 7: 모노 (Mono)
+  // 8: 실버톤 (Silvertone)
+  // 9: 느와르 (Noir)
+  // ==========================================
   const FILTER_PRESETS = {
-    1: { contrast: 1.08, saturation: 1.15, brightness: 10, r: 1.12, g: 1.02, b: 0.82, fade: 0,  sepia: 0, vignette: 0.15 },
-    2: { contrast: 1.25, saturation: 0.80, brightness: -5, r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0, vignette: 0.35, teal: true },
-    3: { contrast: 0.88, saturation: 0.88, brightness: 25, r: 1.03, g: 1.00, b: 1.02, fade: 15, sepia: 0, vignette: 0 },
-    4: { contrast: 1.05, saturation: 1.00, brightness: 0,  r: 1.00, g: 1.00, b: 1.00, fade: 0,  sepia: 0, vignette: 0.65 }
+    1: { contrast: 1.15, saturation: 1.35, brightness: 5,  r: 1.02, g: 1.02, b: 1.02, bw: false, vignette: 0 },
+    2: { contrast: 1.15, saturation: 1.30, brightness: 6,  r: 1.12, g: 1.03, b: 0.88, bw: false, vignette: 0 },
+    3: { contrast: 1.15, saturation: 1.30, brightness: 5,  r: 0.90, g: 1.02, b: 1.14, bw: false, vignette: 0 },
+    4: { contrast: 1.35, saturation: 0.88, brightness: -8, r: 1.00, g: 1.00, b: 1.00, bw: false, vignette: 0.18 },
+    5: { contrast: 1.32, saturation: 0.90, brightness: -6, r: 1.10, g: 1.02, b: 0.88, bw: false, vignette: 0.18 },
+    6: { contrast: 1.32, saturation: 0.90, brightness: -8, r: 0.88, g: 1.00, b: 1.12, bw: false, vignette: 0.18 },
+    7: { contrast: 1.08, saturation: 0.00, brightness: 5,  r: 1.00, g: 1.00, b: 1.00, bw: true,  vignette: 0 },
+    8: { contrast: 0.90, saturation: 0.00, brightness: 18, r: 1.00, g: 1.00, b: 1.00, bw: true,  silver: true, vignette: 0 },
+    9: { contrast: 1.50, saturation: 0.00, brightness: -15,r: 1.00, g: 1.00, b: 1.00, bw: true,  vignette: 0.45 }
   };
 
   function applyPixelFilter(ctx, startX, startY, width, height, filterNum) {
@@ -793,9 +843,16 @@
       let b = data[i + 2];
 
       const lum = r * 0.299 + g * 0.587 + b * 0.114;
-      r = lum + (r - lum) * p.saturation;
-      g = lum + (g - lum) * p.saturation;
-      b = lum + (b - lum) * p.saturation;
+
+      if (p.bw) {
+        r = lum;
+        g = lum;
+        b = lum;
+      } else {
+        r = lum + (r - lum) * p.saturation;
+        g = lum + (g - lum) * p.saturation;
+        b = lum + (b - lum) * p.saturation;
+      }
 
       r = (r - 128) * p.contrast + 128 + p.brightness;
       g = (g - 128) * p.contrast + 128 + p.brightness;
@@ -805,17 +862,11 @@
       g *= p.g;
       b *= p.b;
 
-      if (p.teal) {
-        const t = lum / 255;
-        r += (t - 0.5) * 40;
-        g += (0.5 - t) * 10;
-        b += (0.5 - t) * 45;
-      }
-
-      if (p.fade) {
-        r = p.fade + r * (1 - p.fade / 255);
-        g = p.fade + g * (1 - p.fade / 255);
-        b = p.fade + b * (1 - p.fade / 255);
+      if (p.silver) {
+        // 실버톤: 명부 하이라이트 유지 및 소프트 암부
+        r = r * 0.95 + 12;
+        g = g * 0.95 + 12;
+        b = b * 0.95 + 14;
       }
 
       data[i]     = clampVal(r);
@@ -896,859 +947,4 @@
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = makeGoldGrad(SIZE - 200, SIZE - 180, SIZE, SIZE);
-    ctx.beginPath();
-    ctx.moveTo(SIZE, SIZE);
-    ctx.lineTo(SIZE - 200, SIZE);
-    ctx.bezierCurveTo(SIZE - 150, SIZE - 90, SIZE - 70, SIZE - 120, SIZE, SIZE - 170);
-    ctx.closePath();
-    ctx.fill();
-
-    const dots = [
-      [90, 260], [140, 210], [180, 150], [240, 90], [280, 40],
-      [SIZE - 120, SIZE - 260], [SIZE - 170, SIZE - 200], [SIZE - 220, SIZE - 130], [SIZE - 280, SIZE - 70]
-    ];
-    ctx.fillStyle = '#d4af37';
-    dots.forEach(([x, y]) => {
-      ctx.beginPath();
-      ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    ctx.restore();
-  }
-
-  function drawHanjiDecorations() {
-    const bgGrad = ctx.createRadialGradient(SIZE * 0.35, SIZE * 0.35, 80, SIZE * 0.5, SIZE * 0.5, SIZE * 0.75);
-    bgGrad.addColorStop(0, '#fbf8f0');
-    bgGrad.addColorStop(0.55, '#f4ece1');
-    bgGrad.addColorStop(1, '#e7dcce');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, SIZE, SIZE);
-
-    ctx.save();
-    ctx.fillStyle = 'rgba(150, 120, 90, 0.04)';
-    for (let i = 0; i < 45; i++) {
-      const rx = (i * 187) % SIZE;
-      const ry = (i * 293) % SIZE;
-      ctx.beginPath();
-      ctx.arc(rx, ry, 35 + (i % 6) * 18, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.strokeStyle = 'rgba(105, 95, 75, 0.85)';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(SIZE - 40, SIZE);
-    ctx.bezierCurveTo(SIZE - 90, SIZE - 250, SIZE - 110, SIZE - 450, SIZE - 50, SIZE - 620);
-    ctx.stroke();
-
-    const drawLeaf = (cx, cy, angle, len, w, color) => {
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(angle);
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(w, len * 0.5, 0, len);
-      ctx.quadraticCurveTo(-w, len * 0.5, 0, 0);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    const leaves = [
-      [SIZE - 50, SIZE - 100, -0.6, 68, 17, 'rgba(110, 120, 85, 0.75)'],
-      [SIZE - 75, SIZE - 190, -1.0, 75, 19, 'rgba(92, 105, 68, 0.8)'],
-      [SIZE - 95, SIZE - 280, -1.2, 70, 18, 'rgba(118, 128, 92, 0.75)'],
-      [SIZE - 105, SIZE - 380, -1.0, 68, 17, 'rgba(100, 112, 75, 0.8)'],
-      [SIZE - 95, SIZE - 470, -0.8, 62, 16, 'rgba(115, 124, 88, 0.75)'],
-      [SIZE - 75, SIZE - 550, -0.5, 52, 14, 'rgba(125, 134, 98, 0.7)'],
-      [SIZE - 55, SIZE - 605, -0.3, 42, 12, 'rgba(132, 140, 105, 0.65)']
-    ];
-    leaves.forEach(([x, y, a, l, w, c]) => drawLeaf(x, y, a, l, w, c));
-
-    const drawFlower = (fx, fy, scale = 1) => {
-      ctx.save();
-      ctx.translate(fx, fy);
-      ctx.scale(scale, scale);
-
-      ctx.fillStyle = 'rgba(160, 130, 100, 0.18)';
-      ctx.beginPath();
-      ctx.arc(0, 0, 68, 0, Math.PI * 2);
-      ctx.fill();
-
-      for (let i = 0; i < 5; i++) {
-        const ang = (i * (Math.PI * 2) / 5) - Math.PI / 2;
-        ctx.save();
-        ctx.rotate(ang);
-
-        const petalGrad = ctx.createRadialGradient(0, 32, 5, 0, 35, 48);
-        petalGrad.addColorStop(0, '#ffffff');
-        petalGrad.addColorStop(0.55, '#fcf5e5');
-        petalGrad.addColorStop(0.9, '#f6e4cc');
-        petalGrad.addColorStop(1, '#edd0b4');
-
-        ctx.fillStyle = petalGrad;
-        ctx.strokeStyle = 'rgba(195, 165, 140, 0.6)';
-        ctx.lineWidth = 1.5;
-
-        ctx.beginPath();
-        ctx.moveTo(0, 10);
-        ctx.bezierCurveTo(28, 22, 38, 52, 16, 68);
-        ctx.bezierCurveTo(4, 76, -4, 76, -16, 68);
-        ctx.bezierCurveTo(-38, 52, -28, 22, 0, 10);
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      const centerGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 18);
-      centerGrad.addColorStop(0, '#c66922');
-      centerGrad.addColorStop(0.6, '#e08e2b');
-      centerGrad.addColorStop(1, '#f1b34a');
-      ctx.fillStyle = centerGrad;
-      ctx.beginPath();
-      ctx.arc(0, 0, 16, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    drawFlower(SIZE - 110, SIZE - 170, 1.35);
-    drawFlower(SIZE - 65, SIZE - 280, 0.75);
-
-    ctx.strokeStyle = 'rgba(175, 158, 138, 0.5)';
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(26, 26, SIZE - 52, SIZE - 52);
-    ctx.restore();
-  }
-
-  function drawFilmPerforations(width, height) {
-    ctx.fillStyle = '#111113'; 
-    ctx.fillRect(0, 0, width, 75);           
-    ctx.fillRect(0, height - 75, width, 75); 
-
-    ctx.fillStyle = '#2c2c2e';
-    const holeWidth = 42;
-    const holeHeight = 45;
-    const holeYTop = 15;
-    const holeYBottom = height - 60;
-    const gap = 68;
-
-    for (let x = 25; x < width - 30; x += gap) {
-      ctx.beginPath();
-      ctx.roundRect(x, holeYTop, holeWidth, holeHeight, 6);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.roundRect(x, holeYBottom, holeWidth, holeHeight, 6);
-      ctx.fill();
-    }
-  }
-
-  function drawPolaroidInnerShadow(x, y, w, h) {
-    ctx.save();
-    const topGrad = ctx.createLinearGradient(x, y, x, y + 16);
-    topGrad.addColorStop(0, 'rgba(0, 0, 0, 0.28)');
-    topGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = topGrad;
-    ctx.fillRect(x, y, w, 16);
-
-    const leftGrad = ctx.createLinearGradient(x, y, x + 16, y);
-    leftGrad.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
-    leftGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = leftGrad;
-    ctx.fillRect(x, y, 16, h);
-
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(x, y, w, h);
-    ctx.restore();
-  }
-
-  function drawFilmStrip(nameText, messageText, filterNum, styleKey) {
-    if (styleKey === 'golden') {
-      drawGoldenDecorations();
-    } else if (styleKey === 'hanji') {
-      drawHanjiDecorations();
-    } else if (styleKey === 'polaroid') {
-      ctx.fillStyle = '#fcfcfc';
-      ctx.fillRect(0, 0, SIZE, SIZE);
-    } else {
-      ctx.fillStyle = '#1c1c1e';
-      ctx.fillRect(0, 0, SIZE, SIZE);
-    }
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(AREA_X, AREA_Y, AREA_W, AREA_H);
-    ctx.clip();
-    
-    ctx.fillStyle = styleKey === 'film' ? '#0b0b0c' : '#ffffff';
-    ctx.fillRect(AREA_X, AREA_Y, AREA_W, AREA_H);
-
-    const s = curScale();
-    const dw = srcCanvas.width * s;
-    const dh = srcCanvas.height * s;
-    const dx = AREA_X + (AREA_W - dw) / 2 + offX;
-    const dy = AREA_Y + (AREA_H - dh) / 2 + offY;
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(srcCanvas, 0, 0, srcCanvas.width, srcCanvas.height, dx, dy, dw, dh);
-    ctx.restore();
-
-    applyPixelFilter(ctx, AREA_X, AREA_Y, AREA_W, AREA_H, filterNum);
-
-    if (styleKey === 'polaroid') {
-      drawPolaroidInnerShadow(AREA_X, AREA_Y, AREA_W, AREA_H);
-    } else if (styleKey === 'golden') {
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.85)';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(AREA_X, AREA_Y, AREA_W, AREA_H);
-    } else if (styleKey === 'hanji') {
-      ctx.strokeStyle = 'rgba(120, 105, 90, 0.4)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(AREA_X, AREA_Y, AREA_W, AREA_H);
-    }
-
-    if (showText) {
-      const cardX = AREA_X;
-      const cardY = AREA_Y + AREA_H + 12;
-      const cardWidth = AREA_W;
-      const cardHeight = styleKey === 'film' ? 230 : 220;
-
-      if (styleKey === 'film') {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
-        ctx.beginPath();
-        ctx.roundRect(cardX, cardY, cardWidth, cardHeight, 16);
-        ctx.fill();
-      } else if (styleKey === 'golden') {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-        ctx.beginPath();
-        ctx.roundRect(cardX + 20, cardY + 10, cardWidth - 40, cardHeight - 20, 12);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
-      const textX = cardX + ((cardWidth - (styleKey === 'hanji' ? 60 : 0)) / 2);
-
-      if (styleKey === 'film') {
-        ctx.fillStyle = '#ffffff';
-      } else if (styleKey === 'golden') {
-        ctx.fillStyle = '#2f2010';
-      } else if (styleKey === 'hanji') {
-        ctx.fillStyle = '#222620';
-      } else {
-        ctx.fillStyle = '#1a1a1a';
-      }
-
-      ctx.textAlign = 'center';
-      const maxTextW = cardWidth - (styleKey === 'hanji' ? 180 : 80);
-      
-      const fitFont = (text, basePx = 65, minPx = 20) => {
-        let px = Math.round(basePx * textScale);
-        ctx.font = `${px}px "NanumSeongSirCe", cursive`;
-        const w = ctx.measureText(text).width;
-        if (w > maxTextW) {
-          px = Math.max(minPx, Math.floor(px * maxTextW / w));
-          ctx.font = `${px}px "NanumSeongSirCe", cursive`;
-          while (px > minPx && ctx.measureText(text).width > maxTextW) {
-            px -= 1;
-            ctx.font = `${px}px "NanumSeongSirCe", cursive`;
-          }
-        }
-      };
-
-      const hasName = !!nameText;
-      if (hasName) {
-        fitFont(nameText, 66);
-        ctx.fillText(nameText, textX, cardY + (styleKey === 'film' ? 75 : 80));
-      }
-      fitFont(messageText, 64);
-      const msgY = hasName ? cardY + (styleKey === 'film' ? 165 : 170)
-                           : cardY + (styleKey === 'film' ? 138 : 133);
-      ctx.fillText(messageText, textX, msgY);
-    }
-
-    if (styleKey === 'film') {
-      drawFilmPerforations(SIZE, SIZE);
-    }
-
-    ctx.save();
-    ctx.font = 'bold 22px monospace';
-    ctx.textAlign = 'left';
-    const stampText = 'GOD LOVES YOU';
-    const stampX = styleKey === 'golden' ? 260 : 56;
-
-    if (styleKey === 'film') {
-      const tw = ctx.measureText(stampText).width;
-      ctx.fillStyle = '#111113';
-      ctx.fillRect(stampX - 10, 24, tw + 20, 34);
-      ctx.fillStyle = '#8e8e93';
-    } else if (styleKey === 'golden') {
-      ctx.fillStyle = '#aa8035';
-    } else if (styleKey === 'hanji') {
-      ctx.fillStyle = '#827462';
-    } else {
-      ctx.fillStyle = '#8e8e93';
-    }
-    ctx.fillText(stampText, stampX, 48);
-
-    ctx.textAlign = 'right';
-    const dateStr = getFilmStripDate(capturedDate || new Date());
-    if (styleKey === 'film') {
-      ctx.fillStyle = '#8e8e93';
-      ctx.fillText(dateStr, SIZE - 56, SIZE - 28);
-    } else if (styleKey === 'golden') {
-      ctx.fillStyle = '#aa8035';
-      ctx.fillText(dateStr, SIZE - 56, SIZE - 16);
-    } else if (styleKey === 'hanji') {
-      ctx.fillStyle = '#7a6e5e';
-      ctx.fillText(dateStr, SIZE - 56, SIZE - 16);
-    } else {
-      ctx.fillStyle = '#8e8e93';
-      ctx.fillText(dateStr, SIZE - 56, SIZE - 24);
-    }
-    ctx.restore();
-
-    stickers.forEach((s, idx) => {
-      ctx.save();
-      ctx.font = `${s.size}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(s.text, s.x, s.y);
-
-      if (idx === selectedStickerIdx) {
-        ctx.strokeStyle = '#007aff';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 4]);
-        ctx.strokeRect(s.x - s.size * 0.55, s.y - s.size * 0.55, s.size * 1.1, s.size * 1.1);
-      }
-      ctx.restore();
-    });
-
-    if (showGuides) {
-      const cx = AREA_X + AREA_W / 2, cy = AREA_Y + AREA_H / 2;
-      const vOk = Math.abs(offX) <= 4, hOk = Math.abs(offY) <= 4;
-      const drawLine = (x1, y1, x2, y2, ok) => {
-        ctx.setLineDash([18, 12]);
-        ctx.lineWidth = 7;
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = ok ? '#34c759' : 'rgba(255, 255, 255, 0.85)';
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-      };
-      ctx.save();
-      drawLine(cx, AREA_Y, cx, AREA_Y + AREA_H, vOk);
-      drawLine(AREA_X, cy, AREA_X + AREA_W, cy, hOk);
-      ctx.setLineDash([]);
-      
-      const px = dx + dw / 2, py = dy + dh / 2;
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = (vOk && hOk) ? '#34c759' : '#ffd60a';
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath(); ctx.arc(px, py, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  saveBtn.addEventListener('click', async function() {
-    if (!srcCanvas) return;
-
-    let fileNames = getFileNameBase();
-    const targetDate = capturedDate || new Date();
-    const fileDateStr = getFormattedFileNameDate(targetDate);
-
-    await ensureFontLoaded();
-    showGuides = false;
-    selectedStickerIdx = -1;
-    renderFrame();
-    currentPhoto = makePhotoPayload();
-    const filmBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95));
-
-    const fileName = `${fileNames}_${fileDateStr}.jpg`;
-    const file = new File([filmBlob], fileName, { type: 'image/jpeg' });
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file]
-        });
-        recordPerson();
-        return;
-      } catch (error) {
-        if (error.name !== 'AbortError') console.log('공유 취소', error);
-      }
-    }
-
-    const downloadLink = document.createElement('a');
-    downloadLink.href = URL.createObjectURL(filmBlob);
-    downloadLink.download = fileName;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-
-    recordPerson();
-
-    alert(`'${fileName}' 저장 완료!`);
-
-    nameInput.value = '';
-    phoneInput.value = '';
-    memoInput.value = '';
-    people = [];
-    messageInput.value = '늘 행복하시고 건강하세요!';
-    updateCharCount();
-    previewBox.style.display = 'none';
-    fontSizePanel.style.display = 'none';
-    stickerPanel.style.display = 'none';
-    adjustPanel.style.display = 'none';
-    saveBtn.style.display = 'none';
-    galleryInput.value = '';
-    capturedDate = null;
-    srcCanvas = null;
-    currentImageFile = null;
-    stickers = [];
-  });
-
-  const PHRASE_KEY = 'hwachoPhrases_v3';
-  const DEFAULT_PHRASES = [
-    '늘 행복하시고 건강하세요!',
-    '하나님은 당신을 사랑하세요.'
-  ];
-  const phraseSelect = document.getElementById('phraseSelect');
-  const savePhraseBtn = document.getElementById('savePhraseBtn');
-  const delPhraseBtn = document.getElementById('delPhraseBtn');
-
-  function loadPhrases() {
-    try {
-      const raw = localStorage.getItem(PHRASE_KEY);
-      if (raw) {
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr) && arr.length > 0) return arr;
-      }
-    } catch (e) {}
-    return DEFAULT_PHRASES.slice();
-  }
-  function storePhrases(arr) {
-    try { localStorage.setItem(PHRASE_KEY, JSON.stringify(arr)); } catch (e) {}
-  }
-
-  function renderPhraseDropdown() {
-    const phrases = loadPhrases();
-    phraseSelect.innerHTML = '<option value="" disabled selected>📜 자주 쓰는 문구 선택하기</option>';
-    phrases.forEach((txt) => {
-      const opt = document.createElement('option');
-      opt.value = txt;
-      opt.textContent = txt;
-      phraseSelect.appendChild(opt);
-    });
-  }
-
-  function onSelectPhrase(val) {
-    if (!val) return;
-    messageInput.value = val;
-    messageInput.dispatchEvent(new Event('input'));
-  }
-
-  savePhraseBtn.addEventListener('click', () => {
-    const text = messageInput.value.trim();
-    if (!text) { alert('저장할 문구를 먼저 입력해 주세요.'); return; }
-    const arr = loadPhrases();
-    if (arr.includes(text)) { alert('이미 등록된 문구예요.'); return; }
-    arr.push(text);
-    storePhrases(arr);
-    renderPhraseDropdown();
-    alert('새 문구가 드롭박스에 저장되었습니다.');
-  });
-
-  delPhraseBtn.addEventListener('click', () => {
-    const text = messageInput.value.trim();
-    const arr = loadPhrases();
-    const idx = arr.indexOf(text);
-    if (idx === -1) { alert('드롭박스에 등록되어 있는 문구를 선택한 후 삭제해 주세요.'); return; }
-    if (!confirm(`"${text}" 문구를 목록에서 삭제할까요?`)) return;
-    arr.splice(idx, 1);
-    storePhrases(arr);
-    renderPhraseDropdown();
-    messageInput.value = arr[0] || '';
-    messageInput.dispatchEvent(new Event('input'));
-  });
-
-  renderPhraseDropdown();
-
-  const MAX_MESSAGE_CHARS = 16;
-  const charCount = document.getElementById('charCount');
-
-  function updateCharCount() {
-    const len = [...messageInput.value].length;
-    const left = MAX_MESSAGE_CHARS - len;
-    if (left >= 0) {
-      charCount.textContent = `${left}자 남음 (${len}/${MAX_MESSAGE_CHARS})`;
-      charCount.classList.remove('over');
-    } else {
-      charCount.textContent = `${-left}자 초과 (${len}/${MAX_MESSAGE_CHARS}) · 글자가 자동 축소됩니다`;
-      charCount.classList.add('over');
-    }
-  }
-  messageInput.addEventListener('input', updateCharCount);
-  updateCharCount();
-
-  function setShowText(on) {
-    showText = on;
-    document.querySelectorAll('.text-btn').forEach((btn, idx) => {
-      btn.classList.toggle('active', (idx === 0) === on);
-    });
-    document.getElementById('messageGroup').style.display = on ? '' : 'none';
-    fontSizePanel.style.display = (on && srcCanvas) ? 'flex' : 'none';
-
-    AREA_H = on ? AREA_H_TEXT : AREA_H_FULL;
-    if (!srcCanvas) return;
-
-    const absScale = coverScale * zoom;
-    coverScale = Math.max(AREA_W / srcCanvas.width, AREA_H / srcCanvas.height);
-    const containScale = Math.min(AREA_W / srcCanvas.width, AREA_H / srcCanvas.height);
-    minZoom = Math.min(1, containScale / coverScale);
-    zoomSlider.min = minZoom.toFixed(3);
-    zoom = clamp(absScale / coverScale, minZoom, MAX_ZOOM);
-    zoomSlider.value = zoom;
-    clampOffset();
-    requestRender();
-  }
-
-  const SHEET_URL_KEY = 'hwachoSheetUrl';
-  const PENDING_KEY = 'hwachoPendingRecords';
-  const sheetUrlInput = document.getElementById('sheetUrlInput');
-  const sheetStatusEl = document.getElementById('sheetStatus');
-  const sheetStatusText = document.getElementById('sheetStatusText');
-  const resendBtn = document.getElementById('resendBtn');
-  let recordedPhotoId = '';
-  let currentPhoto = null;
-  let sendingNow = false;
-
-  function getSheetUrl() { try { return localStorage.getItem(SHEET_URL_KEY) || ''; } catch (e) { return ''; } }
-  function loadPending() {
-    try { const a = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); return Array.isArray(a) ? a : []; }
-    catch (e) { return []; }
-  }
-  function savePending(a) { try { localStorage.setItem(PENDING_KEY, JSON.stringify(a)); return true; } catch (e) { return false; } }
-
-  function setSheetStatus(msg, isErr) {
-    sheetStatusText.textContent = msg;
-    sheetStatusEl.classList.toggle('err', !!isErr);
-  }
-  function refreshPendingUI() {
-    const n = loadPending().length;
-    resendBtn.style.display = (n > 0 && getSheetUrl()) ? 'inline-block' : 'none';
-    if (n > 0 && getSheetUrl() && !sendingNow) setSheetStatus(`📒 아직 시트에 못 보낸 기록이 ${n}건 있어요`, true);
-  }
-
-  phoneInput.addEventListener('input', () => {
-    const d = phoneInput.value.replace(/\D/g, '').slice(0, 11);
-    let out = d;
-    if (d.length >= 8) out = d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4);
-    else if (d.length >= 4) out = d.slice(0, 3) + '-' + d.slice(3);
-    phoneInput.value = out;
-  });
-
-  function todayStr() {
-    const t = new Date();
-    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-  }
-
-  function formatPhotoDateTime(dateObj) {
-    const t = dateObj || new Date();
-    const y = t.getFullYear();
-    const m = String(t.getMonth() + 1).padStart(2, '0');
-    const d = String(t.getDate()).padStart(2, '0');
-    const h = String(t.getHours()).padStart(2, '0');
-    const min = String(t.getMinutes()).padStart(2, '0');
-    const s = String(t.getSeconds()).padStart(2, '0');
-    return `${y}-${m}-${d} ${h}:${min}:${s}`;
-  }
-
-  async function fetchWithTimeout(url, opts, ms) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), ms);
-    try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
-    finally { clearTimeout(timer); }
-  }
-
-  function makePhotoPayload() {
-    try {
-      const t = document.createElement('canvas');
-      t.width = 300; t.height = 300;
-      t.getContext('2d').drawImage(canvas, 0, 0, 300, 300);
-      return {
-        thumb: t.toDataURL('image/jpeg', 0.7).split(',')[1],
-        full: canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
-      };
-    } catch (e) { return { thumb: '', full: '' }; }
-  }
-
-  async function postRecord(url, rec) {
-    const body = JSON.stringify(rec);
-    try {
-      const res = await fetchWithTimeout(url, { method: 'POST', body: body, redirect: 'follow' }, 45000);
-      const data = await res.json();
-      return { ok: !!(data && data.ok), verified: true, data: data };
-    } catch (e1) {
-      try {
-        await fetchWithTimeout(url, { method: 'POST', body: body, mode: 'no-cors' }, 45000);
-        return { ok: true, verified: false, data: null };
-      } catch (e2) {
-        return { ok: false, verified: false, data: null };
-      }
-    }
-  }
-
-  async function sendPending() {
-    const url = getSheetUrl();
-    if (!url || sendingNow) return;
-    const arr = loadPending();
-    if (!arr.length) { refreshPendingUI(); return; }
-    sendingNow = true;
-    setSheetStatus('📒 시트에 기록 중…', false);
-    let failed = false, errMsg = '', allVerified = true, warn = '', ver = '';
-    for (const rec of arr.slice()) {
-      const r = await postRecord(url, rec);
-      if (!r.ok) { failed = true; errMsg = (r.data && r.data.error) ? r.data.error : ''; break; }
-      if (!r.verified) allVerified = false;
-      if (r.data && r.data.warn) warn = r.data.warn;
-      if (r.data && r.data.ver) ver = r.data.ver;
-      savePending(loadPending().filter(x => x.id !== rec.id));
-    }
-    sendingNow = false;
-    if (failed) {
-      refreshPendingUI();
-      if (errMsg) setSheetStatus('⚠️ 시트 쪽 오류: ' + errMsg, true);
-    } else if (allVerified) {
-      setSheetStatus('📒 시트에 기록했어요 ✅' + (warn ? ' (' + warn + ')' : '') + (ver ? ' · 스크립트 v' + ver : ''), !!warn);
-      refreshPendingUI();
-    } else {
-      setSheetStatus('📤 시트로 보냈어요. 시트에 줄이 생겼는지 한 번 확인해 주세요', false);
-      refreshPendingUI();
-    }
-  }
-
-  function recordPerson() {
-    if (!currentImageFile) return;
-    const photoId = currentImageFile.name + '|' + currentImageFile.lastModified + '|' + currentImageFile.size;
-    if (photoId === recordedPhotoId) return;
-
-    let list = people.filter(p => p.name || p.phone);
-    if (!list.length) {
-      const n = nameInput.value.trim();
-      const p = phoneInput.value.trim();
-      if (n || p) list = [{ name: n, phone: p }];
-    }
-
-    if (!list.length) { setSheetStatus('📒 입력된 이름/전화번호나 사진 캡션 정보가 없어 시트에 기록하지 않았어요', true); return; }
-    if (!getSheetUrl()) {
-      setSheetStatus('⚠️ 이 화면에는 구글 시트 주소가 저장되어 있지 않아 기록하지 못했어요. 아래 ⚙️ 설정에서 주소를 저장해 주세요', true);
-      document.getElementById('sheetDetails').open = true;
-      return;
-    }
-    
-    // id 필드 제거 완료 (시트 열 밀림 현상 방지)
-    const batch = {
-      date: todayStr(),
-      photoDate: formatPhotoDateTime(capturedDate),
-      people: list.map(p => ({ name: p.name, phone: p.phone })),
-      memo: '',
-      thumb: currentPhoto ? currentPhoto.thumb : '',
-      full: currentPhoto ? currentPhoto.full : ''
-    };
-
-    const arr = loadPending();
-    arr.push(batch);
-    if (!savePending(arr)) {
-      batch.full = '';
-      if (!savePending(arr)) { setSheetStatus('⚠️ 폰 저장 공간이 부족해 기록을 준비하지 못했어요', true); return; }
-    }
-    recordedPhotoId = photoId;
-    sendPending();
-  }
-
-  function checkSheetUrl(v) {
-    if (/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(v)) return '';
-    if (/\/macros\/library\//.test(v)) return '이 주소는 "라이브러리 주소"라서 쓸 수 없어요. Apps Script의 [배포 → 배포 관리]에서 "웹 앱" 주소(…/macros/s/…/exec)를 복사해 주세요.';
-    if (/\/dev$/.test(v)) return '이 주소는 테스트용(/dev) 주소예요. [배포 → 배포 관리]의 웹 앱 주소(…/exec)를 써 주세요.';
-    return '웹앱 주소가 올바르지 않아요. https://script.google.com/macros/s/…/exec 모양이어야 해요.';
-  }
-
-  async function testSheet() {
-    const url = sheetUrlInput.value.trim() || getSheetUrl();
-    if (!url) { alert('먼저 웹앱 주소를 붙여넣어 주세요.'); return; }
-    const bad = checkSheetUrl(url);
-    if (bad) { setSheetStatus('⚠️ ' + bad, true); return; }
-    setSheetStatus('📒 시험 기록을 보내는 중…', false);
-    const r = await postRecord(url, { date: todayStr(), photoDate: formatPhotoDateTime(new Date()), people: [{ name: '연결시험', phone: '' }], memo: '시험용 줄이에요 (지우셔도 돼요)', thumb: '', full: '' });
-    if (r.ok && r.verified) setSheetStatus('✅ 연결 성공' + ((r.data && r.data.ver) ? ' (스크립트 v' + r.data.ver + ')' : ' (스크립트가 예전 코드예요: 새 버전으로 배포해 주세요)') + '! 시트에 "연결시험" 줄이 생겼는지 보고 지워 주세요', false);
-    else if (r.ok) setSheetStatus('📤 보내기는 했어요. 시트에 "연결시험" 줄이 생겼는지 확인해 주세요. 없다면 스크립트 배포 설정을 점검해야 해요', true);
-    else setSheetStatus('⚠️ 실패: ' + ((r.data && r.data.error) ? r.data.error : '인터넷 연결이나 주소를 확인해 주세요'), true);
-  }
-
-  sheetUrlInput.value = getSheetUrl();
-  document.getElementById('sheetUrlSaveBtn').addEventListener('click', () => {
-    const v = sheetUrlInput.value.trim();
-    const bad = checkSheetUrl(v);
-    if (bad) { alert(bad); return; }
-    try { localStorage.setItem(SHEET_URL_KEY, v); } catch (e) {}
-    setSheetStatus('📒 시트 연결 주소를 저장했어요', false);
-    refreshPendingUI();
-    sendPending();
-  });
-  document.getElementById('sheetTestBtn').addEventListener('click', testSheet);
-  document.getElementById('sheetUrlClearBtn').addEventListener('click', () => {
-    if (!confirm('시트 연결을 끊을까요? (아직 못 보낸 기록은 그대로 남아 있어요)')) return;
-    try { localStorage.removeItem(SHEET_URL_KEY); } catch (e) {}
-    sheetUrlInput.value = '';
-    setSheetStatus('', false);
-    refreshPendingUI();
-  });
-  resendBtn.addEventListener('click', sendPending);
-  window.addEventListener('online', sendPending);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) sendPending(); });
-  refreshPendingUI();
-  sendPending();
-
-  const captionInfo = document.getElementById('captionInfo');
-
-  function formatPhoneDigits(raw) {
-    const d = String(raw).replace(/\D/g, '').slice(0, 11);
-    if (d.length >= 8) return d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4);
-    if (d.length >= 4) return d.slice(0, 3) + '-' + d.slice(3);
-    return d;
-  }
-
-  function parseCaptionPeople(text) {
-    const t = (text || '').replace(/[\r\n]+/g, ',').trim();
-    if (!t) return [];
-    const chunks = t.split(/[,，、\/／;；&＆+＋|]+/);
-    const phoneRe = /01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g;
-    const trimName = (n) => n.replace(/^[\-\s·]+|[\-\s·]+$/g, '').trim();
-    const list = [];
-    for (const raw of chunks) {
-      const chunk = raw.replace(/\s+/g, ' ').trim();
-      if (!chunk) continue;
-      const ms = [...chunk.matchAll(phoneRe)];
-      if (!ms.length) { list.push({ name: trimName(chunk), phone: '' }); continue; }
-      let pos = 0;
-      ms.forEach((m) => {
-        list.push({ name: trimName(chunk.slice(pos, m.index)), phone: formatPhoneDigits(m[0]) });
-        pos = m.index + m[0].length;
-      });
-      const rest = trimName(chunk.slice(pos));
-      if (rest) {
-        const last = list[list.length - 1];
-        if (!last.name) last.name = rest;
-        else list.push({ name: rest, phone: '' });
-      }
-    }
-    return list.filter(p => p.name || p.phone).slice(0, 6);
-  }
-
-  function cleanPersonName(n) {
-    return String(n || '').replace(/\s*님$/, '').replace(/\s+/g, ' ').trim();
-  }
-  function getCardName() {
-    const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
-    if (names.length) return names.join(', ') + ' 님';
-    return formatNameWithNim(nameInput.value.trim());
-  }
-  function getFileNameBase() {
-    const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
-    const base = names.length ? names.join('_') : cleanPersonName(nameInput.value);
-    const safe = base.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/^_+|_+$/g, '');
-    return safe || '미지정';
-  }
-
-  async function readCaptionFromFile(file) {
-    try {
-      let exifText = "";
-      if (window.EXIF) {
-        await new Promise((resolve) => {
-          EXIF.getData(file, function() {
-            let rawDesc = EXIF.getTag(this, "ImageDescription") || EXIF.getTag(this, "UserComment") || EXIF.getTag(this, "DocumentName") || "";
-            if (rawDesc) {
-              exifText = decodeKoreanFileName(typeof rawDesc === 'string' ? rawDesc : String(rawDesc));
-            }
-            resolve();
-          });
-        });
-      }
-      if (exifText && exifText.trim()) {
-        return exifText.trim();
-      }
-
-      const buf = await file.slice(0, 65536).arrayBuffer();
-      const dv = new DataView(buf);
-      if (dv.getUint16(0) !== 0xFFD8) return '';
-      const td = new TextDecoder('utf-8');
-      const rs = (off, len) => { let s = ''; for (let i = 0; i < len; i++) s += String.fromCharCode(dv.getUint8(off + i)); return s; };
-      const clean = (t) => t.replace(/\u0000/g, '').trim();
-      let foundText = "";
-
-      const parseExif = (start) => {
-        const le = dv.getUint16(start) === 0x4949;
-        const g16 = (o) => dv.getUint16(o, le), g32 = (o) => dv.getUint32(o, le);
-        const readIFD = (off, depth) => {
-          if (off + 2 > dv.byteLength || depth > 2) return;
-          const n = g16(off);
-          for (let i = 0; i < n; i++) {
-            const e = off + 2 + i * 12;
-            if (e + 12 > dv.byteLength) break;
-            const tag = g16(e), type = g16(e + 2), count = g32(e + 4);
-            const size = count * (type === 3 ? 2 : 1);
-            const valOff = size <= 4 ? e + 8 : start + g32(e + 8);
-            if ((tag === 0x010E || tag === 0x9286) && valOff + count <= dv.byteLength) {
-              let decodedBytes = td.decode(new Uint8Array(buf, valOff, count));
-              foundText = clean(decodeKoreanFileName(decodedBytes));
-            }
-          }
-        };
-        try { readIFD(start + g32(start + 4), 0); } catch(e) {}
-      };
-
-      let p = 2;
-      while (p < dv.byteLength - 4) {
-        if (dv.getUint8(p) !== 0xFF) { p++; continue; }
-        const mk = dv.getUint8(p + 1);
-        if (mk === 0xDA || mk === 0xD9) break;
-        if (mk === 0x00 || mk === 0xFF || (mk >= 0xD0 && mk <= 0xD7) || mk === 0x01) { p += 2; continue; }
-        const len = dv.getUint16(p + 2), seg = p + 4, end = p + 2 + len;
-        if (end > dv.byteLength) break;
-        if (mk === 0xE1 && rs(seg, 6) === 'Exif\0\0') {
-          parseExif(seg + 6);
-          if (foundText) break;
-        }
-        p = end;
-      }
-      return foundText || '';
-    } catch (e) {
-      return '';
-    }
-  }
-
-  async function applyCaptionFromPhoto(file) {
-    const text = await readCaptionFromFile(file);
-    if (currentImageFile !== file) return;
-    const list = parseCaptionPeople(text);
-    if (list.length) {
-      people = list;
-      nameInput.value = list.map(p => p.name).filter(Boolean).join(', ');
-      captionInfo.textContent = `📝 캡션 인식 (${list.length}명)\n` +
-        list.map((p, i) => `${i + 1}. ${p.name || '-'} · ${p.phone || '전화번호 없음'}`).join('\n');
-    } else {
-      people = [];
-      captionInfo.textContent = '📝 이 사진에는 캡션이 없어요 (이름·번호를 위에 직접 입력하시면 시트에 반영됩니다)';
-    }
-    captionInfo.style.display = 'block';
-    requestRender();
-  }
-</script>
-
-</body>
-</html>
+    ctx.fillStyle = makeGoldGrad
