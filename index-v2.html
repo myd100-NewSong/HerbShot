@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>화초전도 사진찍기 v2.1.1</title>
+  <title>화초전도 사진찍기 v2.1.2</title>
   <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="화초전도">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="화초전도 사진찍기 v2.1.1">
+  <meta property="og:title" content="화초전도 사진찍기 v2.1.2">
   <meta property="og:description" content="화초전도로 만난 분께 드리는 사진 선물">
   <meta property="og:url" content="https://myd100-newsong.github.io/HerbShot/">
   <meta property="og:image" content="https://myd100-newsong.github.io/HerbShot/icon.png">
@@ -172,7 +172,7 @@
     .adjust-hint { font-size: 11.5px; color: #6c6c70; text-align: center; line-height: 1.3; }
     .adjust-btns { display: flex; gap: 6px; }
 
-    /* 저장 버튼 영역 */
+    /* 2개 저장 버튼 영역 */
     .save-actions-panel { display: none; flex-direction: column; gap: 8px; width: 100%; margin-top: 6px; }
     .btn-save { 
       width: 100%; 
@@ -207,8 +207,8 @@
 <body>
 
 <div class="container">
-  <h2>🌿 화초전도 사진찍기 v2.1.1</h2>
-  <div class="version-badge">ver 2.1.1 · 선택 저장(시트 기록 / 사진만 저장) 지원</div>
+  <h2>🌿 화초전도 사진찍기 v2.1.2</h2>
+  <div class="version-badge">ver 2.1.2 · 앨범 로딩 안전성 강화</div>
 
   <!-- 대상자 이름 및 전화번호 직접 입력 영역 -->
   <div class="input-group">
@@ -426,13 +426,16 @@
     }
   });
 
+  // 폰트 비동기 로딩 안전성 강화 (로딩 실패나 지연이 발생해도 사진이 막히지 않음)
   async function ensureFontLoaded() {
     try {
-      await document.fonts.load('65px "NanumSeongSirCe"');
-      await document.fonts.ready;
-    } catch (e) {
-      console.log('폰트 로드 대기 중...', e);
-    }
+      if (document.fonts && document.fonts.load) {
+        await Promise.race([
+          document.fonts.load('65px "NanumSeongSirCe"'),
+          new Promise(res => setTimeout(res, 800)) // 최대 0.8초만 대기
+        ]);
+      }
+    } catch (e) {}
   }
 
   function formatNameWithNim(inputName) {
@@ -585,15 +588,24 @@
     }
 
     capturedDate = new Date(file.lastModified || Date.now());
-    EXIF.getData(file, function() {
-      const dateTimeOriginal = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime");
-      if (dateTimeOriginal) {
-        const parts = dateTimeOriginal.split(/[:\s]/);
-        capturedDate = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]);
-        requestRender();
+    
+    // EXIF 읽기 시도
+    try {
+      if (window.EXIF) {
+        EXIF.getData(file, function() {
+          const dateTimeOriginal = EXIF.getTag(this, "DateTimeOriginal") || EXIF.getTag(this, "DateTime");
+          if (dateTimeOriginal) {
+            const parts = dateTimeOriginal.split(/[:\s]/);
+            if (parts.length >= 6) {
+              capturedDate = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5]);
+              requestRender();
+            }
+          }
+        });
       }
-    });
+    } catch(e) {}
 
+    // 핵심: 사진 먼저 화면에 즉각 로딩
     loadPhoto(file);
     applyCaptionFromPhoto(file);
   }
@@ -602,8 +614,11 @@
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = async function() {
+      // 폰트 체크 (최대 0.8초만 대기 후 바로 사진 표시)
       await ensureFontLoaded();
-      const iw = img.naturalWidth, ih = img.naturalHeight;
+
+      const iw = img.naturalWidth || img.width;
+      const ih = img.naturalHeight || img.height;
       const k = Math.min(1, MAX_SRC / Math.max(iw, ih));
       const w = Math.round(iw * k), h = Math.round(ih * k);
 
@@ -621,11 +636,13 @@
       zoomSlider.min = minZoom.toFixed(3);
       zoomSlider.max = MAX_ZOOM;
 
+      // 화면 요소 즉시 표시
       previewBox.style.display = 'block';
       if (showText) fontSizePanel.style.display = 'flex';
       stickerPanel.style.display = 'flex';
       adjustPanel.style.display = 'flex';
-      saveActionsPanel.style.display = 'flex'; // 2개 저장 버튼 표시
+      saveActionsPanel.style.display = 'flex';
+      
       fillView();
     };
     img.onerror = function() {
@@ -762,8 +779,15 @@
   document.getElementById('fitAllBtn').addEventListener('click', fitAllView);
   document.getElementById('fillBtn').addEventListener('click', fillView);
 
-  galleryInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+  // 파일 선택 시 동일 파일 재선택 가능하도록 처리
+  galleryInput.addEventListener('click', (e) => { e.target.value = ''; });
+  galleryInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileSelect(e.target.files[0]);
+    }
+  });
 
+  // 사용자가 화면에서 이름을 수정하면 렌더링 즉시 반영
   nameInput.addEventListener('input', () => { 
     if (people.length > 0) {
       const parts = nameInput.value.split(',').map(s => s.trim());
@@ -1296,7 +1320,7 @@
     }
   }
 
-  // 공통 사진 처리 함수 (saveToSheet가 true일 때만 시트에 기록)
+  // 공통 사진 처리 함수
   async function executeSave(saveToSheet) {
     if (!srcCanvas) return;
 
@@ -1362,10 +1386,7 @@
     stickers = [];
   }
 
-  // 1. 시트 기록 포함 저장
   saveWithSheetBtn.addEventListener('click', () => executeSave(true));
-
-  // 2. 사진만 저장 (시트 기록 안 함)
   saveOnlyBtn.addEventListener('click', () => executeSave(false));
 
   const PHRASE_KEY = 'hwachoPhrases_v3';
@@ -1679,4 +1700,146 @@
   const captionInfo = document.getElementById('captionInfo');
 
   function formatPhoneDigits(raw) {
-    const d = String(raw).replace(/\D/g, '').slice
+    const d = String(raw).replace(/\D/g, '').slice(0, 11);
+    if (d.length >= 8) return d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4);
+    if (d.length >= 4) return d.slice(0, 3) + '-' + d.slice(3);
+    return d;
+  }
+
+  function parseCaptionPeople(text) {
+    const t = (text || '').replace(/[\r\n]+/g, ',').trim();
+    if (!t) return [];
+    const chunks = t.split(/[,，、\/／;；&＆+＋|]+/);
+    const phoneRe = /01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g;
+    const trimName = (n) => n.replace(/^[\-\s·]+|[\-\s·]+$/g, '').trim();
+    const list = [];
+    for (const raw of chunks) {
+      const chunk = raw.replace(/\s+/g, ' ').trim();
+      if (!chunk) continue;
+      const ms = [...chunk.matchAll(phoneRe)];
+      if (!ms.length) { list.push({ name: trimName(chunk), phone: '' }); continue; }
+      let pos = 0;
+      ms.forEach((m) => {
+        list.push({ name: trimName(chunk.slice(pos, m.index)), phone: formatPhoneDigits(m[0]) });
+        pos = m.index + m[0].length;
+      });
+      const rest = trimName(chunk.slice(pos));
+      if (rest) {
+        const last = list[list.length - 1];
+        if (!last.name) last.name = rest;
+        else list.push({ name: rest, phone: '' });
+      }
+    }
+    return list.filter(p => p.name || p.phone).slice(0, 6);
+  }
+
+  function cleanPersonName(n) {
+    return String(n || '').replace(/\s*님$/, '').replace(/\s+/g, ' ').trim();
+  }
+  function getCardName() {
+    const rawVal = nameInput.value.trim();
+    if (rawVal) {
+      return formatNameWithNim(rawVal);
+    }
+    const names = people.map(p => cleanPersonName(p.name)).filter(Boolean);
+    if (names.length) return names.join(', ') + ' 님';
+    return '';
+  }
+  function getFileNameBase() {
+    const rawVal = nameInput.value.trim();
+    const base = rawVal ? cleanPersonName(rawVal) : (people.map(p => cleanPersonName(p.name)).filter(Boolean).join('_'));
+    const safe = base.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').replace(/^_+|_+$/g, '');
+    return safe || '미지정';
+  }
+
+  async function readCaptionFromFile(file) {
+    try {
+      let exifText = "";
+      if (window.EXIF) {
+        await new Promise((resolve) => {
+          EXIF.getData(file, function() {
+            let rawDesc = EXIF.getTag(this, "ImageDescription") || EXIF.getTag(this, "UserComment") || EXIF.getTag(this, "DocumentName") || "";
+            if (rawDesc) {
+              exifText = decodeKoreanFileName(typeof rawDesc === 'string' ? rawDesc : String(rawDesc));
+            }
+            resolve();
+          });
+        });
+      }
+      if (exifText && exifText.trim()) {
+        return exifText.trim();
+      }
+
+      const buf = await file.slice(0, 65536).arrayBuffer();
+      const dv = new DataView(buf);
+      if (dv.getUint16(0) !== 0xFFD8) return '';
+      const td = new TextDecoder('utf-8');
+      const rs = (off, len) => { let s = ''; for (let i = 0; i < len; i++) s += String.fromCharCode(dv.getUint8(off + i)); return s; };
+      const clean = (t) => t.replace(/\u0000/g, '').trim();
+      let foundText = "";
+
+      const parseExif = (start) => {
+        const le = dv.getUint16(start) === 0x4949;
+        const g16 = (o) => dv.getUint16(o, le), g32 = (o) => dv.getUint32(o, le);
+        const readIFD = (off, depth) => {
+          if (off + 2 > dv.byteLength || depth > 2) return;
+          const n = g16(off);
+          for (let i = 0; i < n; i++) {
+            const e = off + 2 + i * 12;
+            if (e + 12 > dv.byteLength) break;
+            const tag = g16(e), type = g16(e + 2), count = g32(e + 4);
+            const size = count * (type === 3 ? 2 : 1);
+            const valOff = size <= 4 ? e + 8 : start + g32(e + 8);
+            if ((tag === 0x010E || tag === 0x9286) && valOff + count <= dv.byteLength) {
+              let decodedBytes = td.decode(new Uint8Array(buf, valOff, count));
+              foundText = clean(decodeKoreanFileName(decodedBytes));
+            }
+          }
+        };
+        try { readIFD(start + g32(start + 4), 0); } catch(e) {}
+      };
+
+      let p = 2;
+      while (p < dv.byteLength - 4) {
+        if (dv.getUint8(p) !== 0xFF) { p++; continue; }
+        const mk = dv.getUint8(p + 1);
+        if (mk === 0xDA || mk === 0xD9) break;
+        if (mk === 0x00 || mk === 0xFF || (mk >= 0xD0 && mk <= 0xD7) || mk === 0x01) { p += 2; continue; }
+        const len = dv.getUint16(p + 2), seg = p + 4, end = p + 2 + len;
+        if (end > dv.byteLength) break;
+        if (mk === 0xE1 && rs(seg, 6) === 'Exif\0\0') {
+          parseExif(seg + 6);
+          if (foundText) break;
+        }
+        p = end;
+      }
+      return foundText || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  async function applyCaptionFromPhoto(file) {
+    try {
+      const text = await readCaptionFromFile(file);
+      if (currentImageFile !== file) return;
+      const list = parseCaptionPeople(text);
+      if (list.length) {
+        people = list;
+        nameInput.value = list.map(p => p.name).filter(Boolean).join(', ');
+        captionInfo.textContent = `📝 캡션 인식 (${list.length}명)\n` +
+          list.map((p, i) => `${i + 1}. ${p.name || '-'} · ${p.phone || '전화번호 없음'}`).join('\n');
+      } else {
+        people = [];
+        captionInfo.textContent = '📝 이 사진에는 캡션이 없어요 (이름·번호를 위에 직접 입력하시면 시트에 반영됩니다)';
+      }
+      captionInfo.style.display = 'block';
+    } catch(err) {
+      captionInfo.style.display = 'none';
+    }
+    requestRender();
+  }
+</script>
+
+</body>
+</html>
